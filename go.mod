@@ -1,4 +1,4 @@
-module travel
+module github.com/Loboo34/travel
 
 go 1.25.5
 

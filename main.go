@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"travel/database"
+	"github.com/Loboo34/travel/database"
 
 	"github.com/joho/godotenv"
 )
