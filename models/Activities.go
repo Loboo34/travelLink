@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Tour struct {
+type Activity struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title           string             `bson:"title" json:"title"`
 	Price           float64            `bson:"price" json:"price"`
@@ -20,6 +20,7 @@ type Tour struct {
 	Rating          float64            `bson:"rating" json:"rating,omitempty"`
 	ReviewCount     int                `bson:"review_count" json:"review_count,omitempty"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	CachedAt          time.Time          `bson:"cached_at" json:"cachedAt"` 
 }
 
 type ActivityTimeslot struct {

@@ -10,7 +10,7 @@ type Flight struct {
 	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	DepartureAirport string             `bson:"departureAirport" json:"departureAirport"`
 	ArrivalAirport   string             `bson:"arrivalAirport" json:"arrivalAirport"`
-	DepartureTime    time.Time          `bson:"departurTime" json:"departurTime"`
+	DepartureTime    time.Time          `bson:"departureTime" json:"departureTime"`
 	ArrivalTime      time.Time          `bson:"arrivalTime" json:"arrivalTime"`
 	Airline          string             `bson:"airline" json:"airline"`
 	FlightNumber     string             `bson:"flightNumber" json:"flightNumber"`
@@ -20,7 +20,7 @@ type Flight struct {
 }
 
 type FlightOffer struct {
-	ID                primitive.ObjectID `bson:"_id,omitepty" json:"id"`
+	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	ProviderReference string             `bson:"providerReference" json:"providerReference"` 
 	Provider          string             `bson:"provider" json:"provider"`                     
 	OneWay            bool               `bson:"one_way" json:"one_way"`
