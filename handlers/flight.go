@@ -151,6 +151,57 @@ func UpdateFight(w http.ResponseWriter, r *http.Request) {
 }
 
 //dlete flight
+func DeleteFlight(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Delete allowed")
+		return
+	}
+
+
+	_,err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin iD")
+		return
+	}
+
+	vars := mux.Vars(r)
+	flightID := vars["flightID"]
+	if flightID == ""{
+		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		return
+	}
+
+	flightCollection := database.DB.Collection("flights")
+	var flight model.Flight
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
+	if err !=nil{
+		if err == mongo.ErrNoDocuments{
+			utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
+		}
+		return
+	}
+
+	result, err := flightCollection.DeleteOne(ctx, bson.M{"_id":flightID})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete flight")
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
+		return
+	}
+
+	utils.Logger.Info("Delete successful")
+	utils.RespondWithJson(w, http.StatusOK, "Deleted flight successfully", map[string]interface{}{})
+
+}
 
 //user
 //get flight/flights
