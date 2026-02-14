@@ -3,6 +3,7 @@ module github.com/Loboo34/travel
 go 1.25.5
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.17.9
 	go.uber.org/zap v1.27.1
