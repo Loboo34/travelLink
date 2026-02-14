@@ -21,6 +21,7 @@ type Flight struct {
 
 type FlightOffer struct {
 	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FlightID          primitive.ObjectID `bson:"flightID" json:"flightID"`
 	ProviderReference string             `bson:"providerReference" json:"providerReference"`
 	Provider          string             `bson:"provider" json:"provider"`
 	OneWay            bool               `bson:"one_way" json:"one_way"`
