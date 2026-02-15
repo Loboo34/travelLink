@@ -471,6 +471,51 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 }
 
 //delete offer
+func DeleteOffer(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
+		return 
+	}
+
+	_,err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
+		return 
+	}
+
+		vars := mux.Vars(r)
+	offerIDStr := vars["flightID"]
+	if offerIDStr == "" {
+		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		return
+	}
+
+	offerID, err := primitive.ObjectIDFromHex(offerIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+
+	offerCollection := database.DB.Collection("flight-offers")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := offerCollection.DeleteOne(ctx, bson.M{"_id": offerID})
+	if err != nil {
+		utils.Logger.Warn("Failed to delete offer")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting offer")
+		return 
+	}
+
+	if result.DeletedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
+		return 
+	}
+
+	utils.Logger.Info("Offer deleted successfully")
+	utils.RespondWithJson(w, http.StatusOK, "Offer Deleed", map[string]interface{}{})
+}
 
 //user
 //get flight/flights
