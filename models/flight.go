@@ -33,6 +33,7 @@ type FlightOffer struct {
 	BookableSeats     int        `bson:"bookable_seats" json:"bookable_seats"`
 	CachedAt          time.Time  `bson:"cached_at" json:"cachedAt"`
 	ExpiresAt         *time.Time `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	IsActive          bool       `bson:"isActive" json:"isActive"`
 }
 
 type PlaneModel struct {

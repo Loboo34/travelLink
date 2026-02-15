@@ -237,6 +237,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		LastTicketingDate time.Time `json:"lastTicketingDate"`
 		BookableSeats     int       `json:"bookableSeats"`
 		ExpiresAt         time.Time `json:"expiresAt"`
+		IsActive          bool      `json:"isActive"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -297,6 +298,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		BookableSeats:     req.BookableSeats,
 		CachedAt:          time.Now(),
 		ExpiresAt:         expiresAt,
+		IsActive:          true,
 	}
 
 	_, err = offersCollection.InsertOne(ctx, create)
@@ -383,7 +385,7 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 			"oneway":            req.OneWay,
 			"bookableSeats":     req.BookableSeats,
 			"lastTicketingDate": lastTicketingDate,
-			"expiresAt":        expiresAt,
+			"expiresAt":         expiresAt,
 		},
 	}
 
@@ -396,11 +398,76 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 
 	if result.MatchedCount == 0 {
 		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
-		return 
+		return
 	}
 
 	utils.Logger.Info("Offer updated Successfully")
 	utils.RespondWithJson(w, http.StatusOK, "Update successful", map[string]interface{}{})
+}
+
+func IsActive(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	offerIDStr := vars["offerID"]
+	if offerIDStr == "" {
+		utils.RespondWithError(w, http.StatusNotFound, "Missing offer ID")
+		return
+	}
+
+	offerID, err := primitive.ObjectIDFromHex(offerIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid offer ID")
+		return
+	}
+
+	var req struct {
+		IsActive bool `json:"isActive"`
+	}
+
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	offerCollection := database.DB.Collection("flight-offers")
+	//var offer model.FlightOffer
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	
+	update := bson.M{
+		"$set": bson.M{
+			"isActive": req.IsActive,
+		},
+	}
+
+	result, err := offerCollection.UpdateOne(ctx, bson.M{"_id": offerID}, update)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer status")
+		utils.Logger.Warn("Failed to update offer status")
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
+		return
+	}
+
+	utils.Logger.Info("Update successful")
+	utils.RespondWithJson(w, http.StatusOK, "Offer status updated", map[string]interface{}{
+		"isActive": req.IsActive,
+	})
 }
 
 //delete offer
