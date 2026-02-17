@@ -154,20 +154,19 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//
-func Availability(w http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodPatch{
+func Availability(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
-		return 
+		return
 	}
 
-	_,err := utils.GetAdminID()
+	_, err := utils.GetAdminID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
-		return 
+		return
 	}
 
-		vars := mux.Vars(r)
+	vars := mux.Vars(r)
 	accommodationIDStr := vars["accommodationID"]
 	if accommodationIDStr == "" {
 		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
@@ -181,26 +180,24 @@ func Availability(w http.ResponseWriter, r *http.Request){
 	}
 
 	var req struct {
-		AccommodationID string `json:"accommodationID"`
-		Date time.Time `json:"date"`
-		AvailableRooms int `json:"availableRooms"`
-		PricePerNight float64 `json:"pricePerNight"`
-		RoomType string `json:"roomType"`
+		AccommodationID string    `json:"accommodationID"`
+		Date            time.Time `json:"date"`
+		AvailableRooms  int       `json:"availableRooms"`
+		PricePerNight   float64   `json:"pricePerNight"`
+		RoomType        string    `json:"roomType"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
-		return 
+		return
 	}
 
 	availabilityCollection := database.DB.Collection("accommodations")
 	var accommodation model.Accommodation
 
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	
 	err = availabilityCollection.FindOne(ctx, bson.M{"_id": accommodaionID}).Decode(&accommodation)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -213,10 +210,10 @@ func Availability(w http.ResponseWriter, r *http.Request){
 
 	update := bson.M{
 		"$set": bson.M{
-			"pricePerNight":         req.PricePerNight,
-			"date": req.Date,
-			"availableRooms":   req.AvailableRooms,
-			"roomType":      req.RoomType,
+			"pricePerNight":  req.PricePerNight,
+			"date":           req.Date,
+			"availableRooms": req.AvailableRooms,
+			"roomType":       req.RoomType,
 		},
 	}
 
@@ -235,12 +232,53 @@ func Availability(w http.ResponseWriter, r *http.Request){
 	utils.Logger.Info("Accommodation updated")
 	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
 
-
-	
 }
 
-
 //Delete accommodation
+func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	accommodationIDStr := vars["accommodationID"]
+	if accommodationIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing accommodation ID")
+		return
+	}
+
+	accommodationID, err := primitive.ObjectIDFromHex(accommodationIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid accommodation ID")
+		return
+	}
+
+	accommodationCollection := database.DB.Collection("accommodations")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := accommodationCollection.DeleteOne(ctx, bson.M{"_id": accommodationID})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting accommodation")
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Accommodation not found")
+		return
+	}
+
+	utils.Logger.Info("Accommodation deleted successfully")
+	utils.RespondWithJson(w, http.StatusOK, "Accommodation deleted", map[string]interface{}{})
+}
 //booking stats
 
 //user
@@ -253,3 +291,6 @@ func Availability(w http.ResponseWriter, r *http.Request){
 //get reviews
 //leave review
 //book accommodation
+
+// Delete accommodation
+
