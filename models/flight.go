@@ -27,13 +27,12 @@ type FlightOffer struct {
 	OneWay            bool               `bson:"oneway" json:"oneway"`
 	Segments          []Flight           `bson:"flight" json:"flight"`
 	PriceTotal        float64            `bson:"priceTotal" json:"priceTotal"`
-	//Currency          string             `bson:"currency" json:"currency"`
-	BaggageAllowance  string     `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
-	LastTicketingDate *time.Time `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`
-	BookableSeats     int        `bson:"bookable_seats" json:"bookable_seats"`
-	CachedAt          time.Time  `bson:"cached_at" json:"cachedAt"`
-	ExpiresAt         *time.Time `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
-	IsActive          bool       `bson:"isActive" json:"isActive"`
+	BaggageAllowance  string             `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
+	LastTicketingDate *time.Time         `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`
+	BookableSeats     int                `bson:"bookable_seats" json:"bookable_seats"`
+	CachedAt          time.Time          `bson:"cached_at" json:"cachedAt"`
+	ExpiresAt         *time.Time         `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	IsActive          bool               `bson:"isActive" json:"isActive"`
 }
 
 type PlaneModel struct {
