@@ -141,19 +141,104 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.Logger.Warn("Failed to update accommodation")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating accommodation")
-		return 
+		return
 	}
 
 	if result.MatchedCount == 0 {
 		utils.RespondWithError(w, http.StatusNotFound, "Accommodation not found")
-		return 
+		return
 	}
-
 
 	utils.Logger.Info("Accommodation updated")
 	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
 
 }
+
+//
+func Availability(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodPatch{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
+		return 
+	}
+
+	_,err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
+		return 
+	}
+
+		vars := mux.Vars(r)
+	accommodationIDStr := vars["accommodationID"]
+	if accommodationIDStr == "" {
+		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		return
+	}
+
+	accommodaionID, err := primitive.ObjectIDFromHex(accommodationIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+
+	var req struct {
+		AccommodationID string `json:"accommodationID"`
+		Date time.Time `json:"date"`
+		AvailableRooms int `json:"availableRooms"`
+		PricePerNight float64 `json:"pricePerNight"`
+		RoomType string `json:"roomType"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+		return 
+	}
+
+	availabilityCollection := database.DB.Collection("accommodations")
+	var accommodation model.Accommodation
+
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	
+	err = availabilityCollection.FindOne(ctx, bson.M{"_id": accommodaionID}).Decode(&accommodation)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "Accommodation not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding accommodation")
+		}
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"pricePerNight":         req.PricePerNight,
+			"date": req.Date,
+			"availableRooms":   req.AvailableRooms,
+			"roomType":      req.RoomType,
+		},
+	}
+
+	result, err := availabilityCollection.UpdateOne(ctx, bson.M{"_id": accommodaionID}, update)
+	if err != nil {
+		utils.Logger.Warn("Failed to update accommodation")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating accommodation")
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Accommodation not found")
+		return
+	}
+
+	utils.Logger.Info("Accommodation updated")
+	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
+
+
+	
+}
+
 
 //Delete accommodation
 //booking stats
