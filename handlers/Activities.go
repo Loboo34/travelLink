@@ -100,13 +100,13 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    var req struct{
-        Title           string   `json:"title"`
+	var req struct {
+		Title           string   `json:"title"`
 		Price           float64  `json:"price"`
-        DurationMinutes int      `json:"durationMinutes"`
+		DurationMinutes int      `json:"durationMinutes"`
 		Inclusions      []string `json:"inclusions"`
 		Exclusions      []string `json:"exclusions"`
-    }
+	}
 
 	activityCollection := database.DB.Collection("activities")
 	var activity model.Activity
@@ -126,12 +126,12 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 
 	update := bson.M{
 		"$set": bson.M{
-            "title": req.Title,
-            "price": req.Price,
-            "durationMinutes": req.DurationMinutes,
-            "inclusions": req.Inclusions,
-            "Exclusion": req.Exclusions,
-        },
+			"title":           req.Title,
+			"price":           req.Price,
+			"durationMinutes": req.DurationMinutes,
+			"inclusions":      req.Inclusions,
+			"Exclusion":       req.Exclusions,
+		},
 	}
 
 	_, err = activityCollection.UpdateOne(ctx, bson.M{"_id": activityID}, update)
@@ -141,13 +141,58 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-    utils.Logger.Info("Updated activity")
-    utils.RespondWithJson(w, http.StatusOK,  "Activity updated successfully", map[string]interface{}{})
+	utils.Logger.Info("Updated activity")
+	utils.RespondWithJson(w, http.StatusOK, "Activity updated successfully", map[string]interface{}{})
 
 }
 
-//delete activity
+// delete activity
+func DeleteActivity(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "ONly DELETE allowed")
+		return
+	}
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	activityIDStr := vars["activityID"]
+	if activityIDStr == "" {
+		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		return
+	}
+
+	activityID, err := primitive.ObjectIDFromHex(activityIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+
+    activityCollection := database.DB.Collection("activities")
+
+
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    result, err := activityCollection.DeleteOne(ctx, bson.M{"_id": activityID})
+    if err != nil{
+        utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting activity")
+        utils.Logger.Warn("Failed to delete activity ")
+        return 
+    }
+
+    if result.DeletedCount == 0 {
+        utils.RespondWithError(w, http.StatusNotFound, "Activity not ")
+    }
+
+    utils.Logger.Info("Deleted activity")
+    utils.RespondWithJson(w, http.StatusOK, "Deleted activity successfully", map[string]interface{}{})
+
+}
+
 //create timeslot
 //booking stats
 
