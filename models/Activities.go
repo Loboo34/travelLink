@@ -30,6 +30,5 @@ type ActivityTimeslot struct {
     DurationMinutes   int                `bson:"duration_minutes"`
     AvailableSpots    int                `bson:"availableSpots"`
     PricePerPerson    float64            `bson:"priceperPerson"`
-    Currency          string             `bson:"currency"`
     GroupSizeMax      int                `bson:"groupSizemax,omitempty"`
 }
