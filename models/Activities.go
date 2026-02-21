@@ -13,22 +13,22 @@ type Activity struct {
 	Description     string             `bson:"description" json:"description"`
 	Location        string             `bson:"location" json:"location"`
 	Categories      []string           `bson:"categories" json:"categories"`
-	DurationMinutes int                `bson:"duration_minutes" json:"duration_minutes"`
+	DurationMinutes int                `bson:"durationMinutes" json:"durationMinutes"`
 	Inclusions      []string           `bson:"inclusions" json:"inclusions,omitempty"`
 	Exclusions      []string           `bson:"exclusions" json:"exclusions,omitempty"`
 	Images          []string           `bson:"images" json:"images,omitempty"`
 	Rating          float64            `bson:"rating" json:"rating,omitempty"`
-	ReviewCount     int                `bson:"review_count" json:"review_count,omitempty"`
+	ReviewCount     int                `bson:"reviewCount" json:"reviewCount,omitempty"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
-	CachedAt          time.Time          `bson:"cached_at" json:"cachedAt"` 
+	CachedAt        time.Time          `bson:"cachedAt" json:"cachedAt"`
 }
 
 type ActivityTimeslot struct {
-    ID                primitive.ObjectID `bson:"_id,omitempty"`
-    ActivityID        primitive.ObjectID `bson:"activity_id"`
-    StartTime         time.Time          `bson:"start_time"`
-    DurationMinutes   int                `bson:"duration_minutes"`
-    AvailableSpots    int                `bson:"availableSpots"`
-    PricePerPerson    float64            `bson:"priceperPerson"`
-    GroupSizeMax      int                `bson:"groupSizemax,omitempty"`
+	ID              primitive.ObjectID `bson:"_id,omitempty"`
+	ActivityID      primitive.ObjectID `bson:"activityID"`
+	StartTime       time.Time          `bson:"startTime"`
+	DurationMinutes int                `bson:"durationMinutes"`
+	AvailableSpots  int                `bson:"availableSpots"`
+	PricePerPerson  float64            `bson:"pricePerPerson"`
+	GroupSizeMax    int                `bson:"groupSizeMax,omitempty"`
 }

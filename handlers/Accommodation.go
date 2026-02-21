@@ -33,8 +33,8 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		PropertyType string   `json:"propertyType"`
 		Name         string   `json:"name"`
 		Address      string   `json:"address"`
-		Ammenities   []string `json:"ammenities"`
-		Description  string   `json:"descripton"`
+		Amenities    []string `json:"amenities"`
+		Description  string   `json:"description"`
 		Images       []string `json:"images"`
 		Location     string   `json:"location"`
 		Fee          float64  `json:"fee"`
@@ -45,7 +45,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accommodationCollection := database.DB.Collection("accomodations")
+	accommodationCollection := database.DB.Collection("accommodations")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -55,7 +55,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		PropertyType: req.PropertyType,
 		Name:         req.Name,
 		Address:      req.Address,
-		Amenities:    req.Ammenities,
+		Amenities:    req.Amenities,
 		Description:  req.Description,
 		Images:       req.Images,
 		Location:     req.Location,
@@ -90,7 +90,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accommodationIDStr := vars["accommodationID"]
 	if accommodationIDStr == "" {
-		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		utils.RespondWithError(w, http.StatusNotFound, "Missing accommodation ID")
 		return
 	}
 
@@ -101,10 +101,10 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Fee         string   `json:"fee"`
+		Fee         float64  `json:"fee"`
 		Description string   `json:"description"`
-		Amenities   string   `json:"amenities"`
-		Images      []string `json:"imags"`
+		Amenities   []string `json:"amenities"`
+		Images      []string `json:"images"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -112,7 +112,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accommodationCollection := database.DB.Collection("accommodation")
+	accommodationCollection := database.DB.Collection("accommodations")
 	var accommodation model.Accommodation
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -169,7 +169,7 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accommodationIDStr := vars["accommodationID"]
 	if accommodationIDStr == "" {
-		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
+		utils.RespondWithError(w, http.StatusNotFound, "Missing accommodation ID")
 		return
 	}
 
@@ -234,7 +234,7 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//Delete accommodation
+// Delete accommodation
 func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
@@ -279,6 +279,7 @@ func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 	utils.Logger.Info("Accommodation deleted successfully")
 	utils.RespondWithJson(w, http.StatusOK, "Accommodation deleted", map[string]interface{}{})
 }
+
 //booking stats
 
 //user
@@ -293,4 +294,3 @@ func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 //book accommodation
 
 // Delete accommodation
-

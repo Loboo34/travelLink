@@ -135,7 +135,7 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 			"price":           req.Price,
 			"durationMinutes": req.DurationMinutes,
 			"inclusions":      req.Inclusions,
-			"Exclusion":       req.Exclusions,
+			"exclusion":       req.Exclusions,
 		},
 	}
 
@@ -229,7 +229,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		DurationMinutes int                `json:"durationMinutes"`
 		AvailableSpots  int                `json:"availableSpots"`
 		PricePerPerson  float64            `json:"pricePerPerson"`
-		GroupSizeMax    int                `json:"groupSiveMax"`
+		GroupSizeMax    int                `json:"groupSizeMax"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -257,7 +257,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 
 	create := model.ActivityTimeslot{
 		ID:              primitive.NewObjectID(),
-		ActivityID:      req.ActivityID,
+		ActivityID:      activityID,
 		StartTime:       req.StartTime,
 		DurationMinutes: req.DurationMinutes,
 		AvailableSpots:  req.AvailableSpots,
