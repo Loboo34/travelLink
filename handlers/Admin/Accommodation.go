@@ -282,15 +282,7 @@ func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 
 //booking stats
 
-//user
-//get accommodations
-//get accommodationID
-//search accommodations
-//get available rooms
-//get accommodation availability
-//get by location
-//get reviews
-//leave review
-//book accommodation
 
-// Delete accommodation
+
+
+

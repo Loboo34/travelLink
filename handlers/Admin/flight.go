@@ -517,10 +517,4 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request){
 	utils.RespondWithJson(w, http.StatusOK, "Offer Deleed", map[string]interface{}{})
 }
 
-//user
-//get flight/flights
-//search flights
-//book flight
-//get flight bookings
-//get flight by routes
-//get flight availability/seats
+
