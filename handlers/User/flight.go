@@ -45,8 +45,8 @@ func GetFlights(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Fetched flights", flights)
 }
 
-func getFlight(w http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodGet{
+func getFlight(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return
 	}
@@ -70,7 +70,6 @@ func getFlight(w http.ResponseWriter, r *http.Request){
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-
 	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
@@ -78,13 +77,35 @@ func getFlight(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-
 	utils.Logger.Info("Fetched flight")
 	utils.RespondWithJson(w, http.StatusOK, "Flight found", map[string]interface{}{"flight": flightID})
 
 }
 
-//search flights
-//get flight bookings
+// search flights
+// get flight bookings
+// func GetBookings(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodGet {
+// 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+// 		return
+// 	}
+
+// 	user, err := utils.GetUserID()
+// 	if err != nil {
+// 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
+// 		return
+// 	}
+
+
+
+
+// 	bookingCollection := database.DB.Collection("bookings")
+
+// 	var history model.BookingHistory
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+// }
+
 //get flight by routes
 //get flight availability/seats
