@@ -171,8 +171,8 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//package stats
-//publish/unpublish package
+// package stats
+// publish/unpublish package
 func Active(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
@@ -235,4 +235,58 @@ func Active(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Package status updated", map[string]interface{}{
 		"isActive": req.IsActive,
 	})
+}
+
+// delete
+func DeletePackage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing package ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	packageIDStr := vars["packagID"]
+	if packageIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing package ID")
+		return
+	}
+
+	PackageID, err := primitive.ObjectIDFromHex(packageIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid package ID")
+		return
+	}
+
+	packageCollection := database.DB.Collection("packages")
+	var pack model.Package
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = packageCollection.FindOne(ctx, bson.M{"_id": PackageID}).Decode(&pack)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "Package not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding package")
+			utils.Logger.Warn("Failed to find package")
+		}
+		return
+	}
+
+	_, err = packageCollection.DeleteOne(ctx, bson.M{"_id": PackageID})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting package")
+		utils.Logger.Warn("Failed to delete package ")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Deleted package successfully", map[string]interface{}{})
+	utils.Logger.Info("Package deleted")
 }
