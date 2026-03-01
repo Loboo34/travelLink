@@ -13,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	
 )
 
 // admin
@@ -124,6 +123,11 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 		Images             []string                 `json:"images"`
 	}
 
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
 	packageCollection := database.DB.Collection("packags")
 	var pack model.Package
 
@@ -158,14 +162,77 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 	_, err = packageCollection.UpdateOne(ctx, bson.M{"_id": packageID}, update)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating package")
-        utils.Logger.Warn("Failed to update package")
+		utils.Logger.Warn("Failed to update package")
 		return
 	}
 
 	utils.RespondWithJson(w, http.StatusOK, "Package Updated", map[string]interface{}{})
-    utils.Logger.Info("Updated package successfully")
+	utils.Logger.Info("Updated package successfully")
 
 }
 
 //package stats
 //publish/unpublish package
+func Active(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	packageIDStr := vars["packageID"]
+	if packageIDStr == "" {
+		utils.RespondWithError(w, http.StatusNotFound, "Missing package ID")
+		return
+	}
+
+	packageID, err := primitive.ObjectIDFromHex(packageIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid package ID")
+		return
+	}
+
+	var req struct {
+		IsActive bool `json:"isActive"`
+	}
+
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	packageCollection := database.DB.Collection("packages")
+	//var package model.FlightOffer
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	update := bson.M{
+		"$set": bson.M{
+			"isActive": req.IsActive,
+		},
+	}
+
+	result, err := packageCollection.UpdateOne(ctx, bson.M{"_id": packageID}, update)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating package status")
+		utils.Logger.Warn("Failed to update package status")
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		utils.RespondWithError(w, http.StatusNotFound, "Package not found")
+		return
+	}
+
+	utils.Logger.Info("Update successful")
+	utils.RespondWithJson(w, http.StatusOK, "Package status updated", map[string]interface{}{
+		"isActive": req.IsActive,
+	})
+}
