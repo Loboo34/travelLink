@@ -45,7 +45,7 @@ func GetFlights(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Fetched flights", flights)
 }
 
-func getFlight(w http.ResponseWriter, r *http.Request) {
+func GetFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return
