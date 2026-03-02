@@ -171,7 +171,6 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// package stats
 // publish/unpublish package
 func Active(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
@@ -290,3 +289,6 @@ func DeletePackage(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Deleted package successfully", map[string]interface{}{})
 	utils.Logger.Info("Package deleted")
 }
+
+// package stats
+
