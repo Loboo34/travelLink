@@ -55,3 +55,26 @@ type FlightCabinClass struct {
 	AvailableSeats int
 	Price          float64
 }
+
+type Airline struct {
+	ID   primitive.ObjectID `bson:"_id" json:"id"`
+	Name string             `bson:"name" json:"name"`
+	Code string             `bson:"code" json:"code"`
+}
+
+type Airport struct {
+    ID        int
+    Code      string // IATA  NBO
+    Name      string
+    City      string
+    Country   string
+    Latitude  float64
+    Longitude float64
+}
+
+type Route struct {
+    ID                   int
+    OriginAirportID      int
+    DestinationAirportID int
+    EstimatedDurationMin int
+}

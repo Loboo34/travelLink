@@ -22,7 +22,7 @@ func GetAcommodations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accommodationCollection := database.DB.Collection("acommodations")
+	accommodationCollection := database.DB.Collection("accommodations")
 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
