@@ -63,18 +63,18 @@ type Airline struct {
 }
 
 type Airport struct {
-    ID        primitive.ObjectID
+    ID        primitive.ObjectID 
     Code      string // IATA  NBO
     Name      string
-    City      string `bson:"city" json:"city"`
+    City      string 
     Country   string
     Latitude  float64
     Longitude float64
 }
 
 type Route struct {
-    ID                   int
-    OriginAirportID      int
-    DestinationAirportID int
+    ID                   primitive.ObjectID
+    OriginAirportID      primitive.ObjectID
+    DestinationAirportID primitive.ObjectID
     EstimatedDurationMin int
 }
