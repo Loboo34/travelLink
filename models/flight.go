@@ -63,10 +63,10 @@ type Airline struct {
 }
 
 type Airport struct {
-    ID        int
+    ID        primitive.ObjectID
     Code      string // IATA  NBO
     Name      string
-    City      string
+    City      string `bson:"city" json:"city"`
     Country   string
     Latitude  float64
     Longitude float64
