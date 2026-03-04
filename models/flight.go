@@ -6,6 +6,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type FlightStatus string
+
+const (
+	FlightStatusScheduled FlightStatus = "scheduled"
+	FlightStatusDelayed   FlightStatus = "delayed"
+	FlightStatusCancelled FlightStatus = "cancelled"
+	FlightStatusDeparted  FlightStatus = "departed"
+	FlightStatusArrived   FlightStatus = "arrived"
+)
+
 type Flight struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	OriginID      primitive.ObjectID `bson:"originID" json:"originID"`
@@ -17,7 +27,7 @@ type Flight struct {
 	CabinClass    []FlightCabinClass `bson:"cabinClass" json:"cabinClass"`
 	Stops         int                `bson:"stops" json:"stops"`
 	PlaneID       primitive.ObjectID `bson:"planeID" json:"planeID"`
-	Status        string             `bson:"status" json:"status"`
+	Status        FlightStatus       `bson:"status" json:"status"`
 }
 
 type FlightOffer struct {
@@ -37,24 +47,38 @@ type FlightOffer struct {
 }
 
 type PlaneModel struct {
-	ID           primitive.ObjectID
-	Name         string
-	Model        string
-	CabinClasses []CabinClass
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name         string             `bson:"name" json:"name"`
+	Model        string             `bson:"model" json:"model"`
+	CabinClasses []CabinClass       `bson:"cabinClasses" json:"cabinClasses"`
 }
 
+type CabinClassType string
+
+const (
+	CabinClassEconomy  CabinClassType = "economy"
+	CabinClassBusiness CabinClassType = "business"
+	CabinClassFirst    CabinClassType = "first"
+)
+
 type CabinClass struct {
-	Name         string
-	SeatCapacity int
-	AmenityLevel string
+	Name         string         `bson:"name" json:"name"`
+	Type         CabinClassType `bson:"type" json:"type"`
+	SeatCapacity int            `bson:"seatCapacity" json:"seatCapacity"`
+	AmenityLevel string         `bson:"amenityLevel" json:"amenityLevel"`
 }
 
 type FlightCabinClass struct {
-	ID            primitive.ObjectID
-	ClassType     string
-	TotalSeats    int
-	ReservedSeats int
-	Price         int64
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ClassType     CabinClassType     `bson:"classType" json:"classType"`
+	TotalSeats    int                `bson:"totalSeats" json:"totalSeats"`
+	ReservedSeats int                `bson:"reservedSeats" json:"reservedSeats"`
+	Price         int64              `bson:"price" json:"price"` // in smallest currency unit
+}
+
+type BaggageAllowance struct {
+	Pieces   int `bson:"pieces" json:"pieces"`
+	WeightKg int `bson:"weightKg" json:"weightKg"`
 }
 
 type Airline struct {
@@ -64,14 +88,14 @@ type Airline struct {
 }
 
 type Airport struct {
-	ID        primitive.ObjectID
-	Code      string // IATA  NBO
-	Name      string
-	City      string
-	Country   string
-	Latitude  float64
-	Longitude float64
-	Timezone  string
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Code      string             `bson:"code" json:"code"`
+	Name      string             `bson:"name" json:"name"`
+	City      string             `bson:"city" json:"city"`
+	Country   string             `bson:"country" json:"country"`
+	Latitude  float64            `bson:"latitude" json:"latitude"`
+	Longitude float64            `bson:"longitude" json:"longitude"`
+	Timezone  string             `bson:"timezone" json:"timezone"`
 }
 
 type Route struct {
