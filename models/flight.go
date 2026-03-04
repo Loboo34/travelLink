@@ -38,7 +38,7 @@ type FlightOffer struct {
 	OneWay            bool                 `bson:"oneway" json:"oneway"`
 	Segments          []primitive.ObjectID `bson:"flight" json:"flight"`
 	PriceTotal        int64                `bson:"priceTotal" json:"priceTotal"`
-	BaggageAllowance  string               `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
+	BaggageAllowance  BaggageAllowance     `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
 	LastTicketingDate *time.Time           `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`
 	BookableSeats     int                  `bson:"bookable_seats" json:"bookable_seats"`
 	CachedAt          time.Time            `bson:"cached_at" json:"cachedAt"`

@@ -230,16 +230,16 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		FlightID          string    `json:"flightID"`
-		Provider          string    `json:"provider"`
-		ProviderReference string    `json:"providerReference"`
-		OneWay            bool      `json:"oneWay"`
-		Price             int64     `json:"price"`
-		BaggageAllowance  string    `json:"baggageAllowance"`
-		LastTicketingDate time.Time `json:"lastTicketingDate"`
-		BookableSeats     int       `json:"bookableSeats"`
-		ExpiresAt         time.Time `json:"expiresAt"`
-		IsActive          bool      `json:"isActive"`
+		FlightID          string                 `json:"flightID"`
+		Provider          string                 `json:"provider"`
+		ProviderReference string                 `json:"providerReference"`
+		OneWay            bool                   `json:"oneWay"`
+		Price             int64                  `json:"price"`
+		BaggageAllowance  model.BaggageAllowance `json:"baggageAllowance"`
+		LastTicketingDate time.Time              `json:"lastTicketingDate"`
+		BookableSeats     int                    `json:"bookableSeats"`
+		ExpiresAt         time.Time              `json:"expiresAt"`
+		IsActive          bool                   `json:"isActive"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
