@@ -30,15 +30,14 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		DepartureAirport string                   `json:"departureAirport"`
-		ArrivalAirport   string                   `json:"arrivalAirport"`
-		DepartureTime    time.Time                `json:"departureTime"`
-		ArrivalTime      time.Time                `json:"arrivalTime"`
-		Airline          string                   `json:"airline"`
-		FlightNumber     string                   `json:"flightNumber"`
-		CabinClass       []model.FlightCabinClass `json:"cabinClass"`
-		Stops            string                   `json:"stops"`
-		PlaneType        string                   `json:"planeType"`
+		Route         model.Route              `json:"route"`
+		DepartureTime time.Time                `json:"departureTime"`
+		ArrivalTime   time.Time                `json:"arrivalTime"`
+		Airline       model.Airline                 `json:"airline"`
+		FlightNumber  string                   `json:"flightNumber"`
+		CabinClass    []model.FlightCabinClass `json:"cabinClass"`
+		Stops         string                   `json:"stops"`
+		PlaneType     string                   `json:"planeType"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -52,16 +51,15 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 	flightCollection := database.DB.Collection("flights")
 
 	flight := model.Flight{
-		ID:               primitive.NewObjectID(),
-		DepartureAirport: req.DepartureAirport,
-		ArrivalAirport:   req.ArrivalAirport,
-		DepartureTime:    req.DepartureTime,
-		ArrivalTime:      req.ArrivalTime,
-		Airline:          req.Airline,
-		FlightNumber:     req.FlightNumber,
-		CabinClass:       req.CabinClass,
-		Stops:            req.Stops,
-		PlaneType:        req.PlaneType,
+		ID:            primitive.NewObjectID(),
+		Route:         req.Route,
+		DepartureTime: req.DepartureTime,
+		ArrivalTime:   req.ArrivalTime,
+		Airline:       req.Airline,
+		FlightNumber:  req.FlightNumber,
+		CabinClass:    req.CabinClass,
+		Stops:         req.Stops,
+		PlaneType:     req.PlaneType,
 	}
 
 	_, err = flightCollection.InsertOne(ctx, flight)
@@ -445,7 +443,6 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	
 	update := bson.M{
 		"$set": bson.M{
 			"isActive": req.IsActive,
@@ -470,20 +467,20 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-//delete offer
-func DeleteOffer(w http.ResponseWriter, r *http.Request){
+// delete offer
+func DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
-		return 
+		return
 	}
 
-	_,err := utils.GetAdminID()
+	_, err := utils.GetAdminID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
-		return 
+		return
 	}
 
-		vars := mux.Vars(r)
+	vars := mux.Vars(r)
 	offerIDStr := vars["flightID"]
 	if offerIDStr == "" {
 		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
@@ -505,16 +502,14 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		utils.Logger.Warn("Failed to delete offer")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting offer")
-		return 
+		return
 	}
 
 	if result.DeletedCount == 0 {
 		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
-		return 
+		return
 	}
 
 	utils.Logger.Info("Offer deleted successfully")
 	utils.RespondWithJson(w, http.StatusOK, "Offer Deleed", map[string]interface{}{})
 }
-
-

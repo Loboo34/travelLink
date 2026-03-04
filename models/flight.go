@@ -7,16 +7,15 @@ import (
 )
 
 type Flight struct {
-	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	DepartureAirport string             `bson:"departureAirport" json:"departureAirport"`
-	ArrivalAirport   string             `bson:"arrivalAirport" json:"arrivalAirport"`
-	DepartureTime    time.Time          `bson:"departureTime" json:"departureTime"`
-	ArrivalTime      time.Time          `bson:"arrivalTime" json:"arrivalTime"`
-	Airline          string             `bson:"airline" json:"airline"`
-	FlightNumber     string             `bson:"flightNumber" json:"flightNumber"`
-	CabinClass       []FlightCabinClass `bson:"cabinClass" json:"cabinClass"`
-	Stops            string             `bson:"stops" json:"stops"`
-	PlaneType        string             `bson:"planeType" json:"planeType"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Route         Route              `bson:"route" json:"route"`
+	DepartureTime time.Time          `bson:"departureTime" json:"departureTime"`
+	ArrivalTime   time.Time          `bson:"arrivalTime" json:"arrivalTime"`
+	Airline       Airline             `bson:"airline" json:"airline"`
+	FlightNumber  string             `bson:"flightNumber" json:"flightNumber"`
+	CabinClass    []FlightCabinClass `bson:"cabinClass" json:"cabinClass"`
+	Stops         string             `bson:"stops" json:"stops"`
+	PlaneType     string             `bson:"planeType" json:"planeType"`
 }
 
 type FlightOffer struct {
@@ -63,18 +62,18 @@ type Airline struct {
 }
 
 type Airport struct {
-    ID        primitive.ObjectID 
-    Code      string // IATA  NBO
-    Name      string
-    City      string 
-    Country   string
-    Latitude  float64
-    Longitude float64
+	ID        primitive.ObjectID
+	Code      string // IATA  NBO
+	Name      string
+	City      string
+	Country   string
+	Latitude  float64
+	Longitude float64
 }
 
 type Route struct {
-    ID                   primitive.ObjectID
-    OriginAirportID      primitive.ObjectID
-    DestinationAirportID primitive.ObjectID
-    EstimatedDurationMin int
+	ID                   primitive.ObjectID
+	OriginAirportID      primitive.ObjectID
+	DestinationAirportID primitive.ObjectID
+	EstimatedDurationMin int
 }
