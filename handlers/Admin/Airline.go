@@ -270,6 +270,7 @@ func CreateAirport(w http.ResponseWriter, r *http.Request) {
 		Country   string  `json:"country"`
 		Latitude  float64 `json:"latitude"`
 		Longitude float64 `json:"longitude"`
+		Timezone  string  `json:"timeZone"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -290,6 +291,7 @@ func CreateAirport(w http.ResponseWriter, r *http.Request) {
 		Country:   req.Country,
 		Latitude:  req.Latitude,
 		Longitude: req.Longitude,
+		Timezone:  req.Timezone,
 	}
 
 	_, err = airportCollection.InsertOne(ctx, create)
@@ -492,7 +494,6 @@ func GetAirport(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJson(w, http.StatusOK, "Fetched airport", map[string]interface{}{})
 }
-
 
 // routes
 func CreateRoute(w http.ResponseWriter, r *http.Request) {
@@ -730,4 +731,3 @@ func GetRoute(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJson(w, http.StatusOK, "Fetched route", map[string]interface{}{})
 }
-

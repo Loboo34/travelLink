@@ -8,30 +8,32 @@ import (
 
 type Flight struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Route         Route              `bson:"route" json:"route"`
+	OriginID      primitive.ObjectID `bson:"originID" json:"originID"`
+	DestinationID primitive.ObjectID `bson:"destinationID" json:"destinationID"`
 	DepartureTime time.Time          `bson:"departureTime" json:"departureTime"`
 	ArrivalTime   time.Time          `bson:"arrivalTime" json:"arrivalTime"`
-	Airline       Airline             `bson:"airline" json:"airline"`
+	AirlineID     primitive.ObjectID `bson:"airlineID" json:"airlineID"`
 	FlightNumber  string             `bson:"flightNumber" json:"flightNumber"`
 	CabinClass    []FlightCabinClass `bson:"cabinClass" json:"cabinClass"`
-	Stops         string             `bson:"stops" json:"stops"`
-	PlaneType     string             `bson:"planeType" json:"planeType"`
+	Stops         int                `bson:"stops" json:"stops"`
+	PlaneID       primitive.ObjectID `bson:"planeID" json:"planeID"`
+	Status        string             `bson:"status" json:"status"`
 }
 
 type FlightOffer struct {
-	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	FlightID          primitive.ObjectID `bson:"flightID" json:"flightID"`
-	ProviderReference string             `bson:"providerReference" json:"providerReference"`
-	Provider          string             `bson:"provider" json:"provider"`
-	OneWay            bool               `bson:"oneway" json:"oneway"`
-	Segments          []Flight           `bson:"flight" json:"flight"`
-	PriceTotal        float64            `bson:"priceTotal" json:"priceTotal"`
-	BaggageAllowance  string             `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
-	LastTicketingDate *time.Time         `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`
-	BookableSeats     int                `bson:"bookable_seats" json:"bookable_seats"`
-	CachedAt          time.Time          `bson:"cached_at" json:"cachedAt"`
-	ExpiresAt         *time.Time         `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
-	IsActive          bool               `bson:"isActive" json:"isActive"`
+	ID                primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
+	FlightID          primitive.ObjectID   `bson:"flightID" json:"flightID"`
+	ProviderReference string               `bson:"providerReference" json:"providerReference"`
+	Provider          string               `bson:"provider" json:"provider"`
+	OneWay            bool                 `bson:"oneway" json:"oneway"`
+	Segments          []primitive.ObjectID `bson:"flight" json:"flight"`
+	PriceTotal        int64                `bson:"priceTotal" json:"priceTotal"`
+	BaggageAllowance  string               `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
+	LastTicketingDate *time.Time           `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`
+	BookableSeats     int                  `bson:"bookable_seats" json:"bookable_seats"`
+	CachedAt          time.Time            `bson:"cached_at" json:"cachedAt"`
+	ExpiresAt         *time.Time           `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	IsActive          bool                 `bson:"isActive" json:"isActive"`
 }
 
 type PlaneModel struct {
@@ -48,11 +50,11 @@ type CabinClass struct {
 }
 
 type FlightCabinClass struct {
-	ID             primitive.ObjectID
-	ClassType      string
-	TotalSeats     int
-	AvailableSeats int
-	Price          float64
+	ID            primitive.ObjectID
+	ClassType     string
+	TotalSeats    int
+	ReservedSeats int
+	Price         int64
 }
 
 type Airline struct {
@@ -69,11 +71,12 @@ type Airport struct {
 	Country   string
 	Latitude  float64
 	Longitude float64
+	Timezone  string
 }
 
 type Route struct {
-	ID                   primitive.ObjectID
-	OriginAirportID      primitive.ObjectID
-	DestinationAirportID primitive.ObjectID
-	EstimatedDurationMin int
+	ID                   primitive.ObjectID `bson:"_id" json:"id"`
+	OriginAirportID      primitive.ObjectID `bson:"originAirportID" json:"originAirportID"`
+	DestinationAirportID primitive.ObjectID `bson:"destinationAirportID" json:"destinationAirportID"`
+	EstimatedDurationMin int                `bson:"estimatedDurationMin" json:"estimatedDurationMin"`
 }

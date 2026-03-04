@@ -30,14 +30,16 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Route         model.Route              `json:"route"`
+		OriginID      primitive.ObjectID       `json:"originID"`
+		DestinationID primitive.ObjectID       `json:"destinationID"`
 		DepartureTime time.Time                `json:"departureTime"`
 		ArrivalTime   time.Time                `json:"arrivalTime"`
-		Airline       model.Airline                 `json:"airline"`
+		AirlineID     primitive.ObjectID       `json:"airline"`
 		FlightNumber  string                   `json:"flightNumber"`
 		CabinClass    []model.FlightCabinClass `json:"cabinClass"`
-		Stops         string                   `json:"stops"`
-		PlaneType     string                   `json:"planeType"`
+		Stops         int                      `json:"stops"`
+		PlaneID       primitive.ObjectID       `json:"planeType"`
+		Status        string                   `json:"status"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -52,14 +54,16 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 
 	flight := model.Flight{
 		ID:            primitive.NewObjectID(),
-		Route:         req.Route,
+		OriginID:      req.OriginID,
+		DestinationID: req.DestinationID,
 		DepartureTime: req.DepartureTime,
 		ArrivalTime:   req.ArrivalTime,
-		Airline:       req.Airline,
+		AirlineID:     req.AirlineID,
 		FlightNumber:  req.FlightNumber,
 		CabinClass:    req.CabinClass,
 		Stops:         req.Stops,
-		PlaneType:     req.PlaneType,
+		PlaneID:       req.PlaneID,
+		Status:        "Scheduled",
 	}
 
 	_, err = flightCollection.InsertOne(ctx, flight)
@@ -230,7 +234,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		Provider          string    `json:"provider"`
 		ProviderReference string    `json:"providerReference"`
 		OneWay            bool      `json:"oneWay"`
-		Price             float64   `json:"price"`
+		Price             int64     `json:"price"`
 		BaggageAllowance  string    `json:"baggageAllowance"`
 		LastTicketingDate time.Time `json:"lastTicketingDate"`
 		BookableSeats     int       `json:"bookableSeats"`
