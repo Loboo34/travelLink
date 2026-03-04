@@ -220,7 +220,7 @@ func GetAirline(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	airlineIDStr := vars["airlineID"]
 	if airlineIDStr == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing arline ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing airline ID")
 		return
 	}
 
@@ -424,6 +424,76 @@ func DeleteAirport(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func GetAirports(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Get Allowed")
+		return
+	}
+
+	airportCollection := database.DB.Collection("airports")
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := airportCollection.Find(ctx, bson.M{})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding airports")
+		utils.Logger.Warn("Failed to fetch airports")
+		return
+	}
+
+	defer cursor.Close(ctx)
+
+	var airports []model.Airport
+	if err := cursor.All(ctx, &airports); err != nil {
+		utils.Logger.Warn("Failed to decode airports")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error decodeing airports")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Fetched airports", airports)
+}
+
+func GetAirport(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	airportIDStr := vars["airportID"]
+	if airportIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing airport ID")
+		return
+	}
+
+	airportID, err := primitive.ObjectIDFromHex(airportIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid airport ID")
+		return
+	}
+
+	airportCollection := database.DB.Collection("airlines")
+	var airport model.Airline
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = airportCollection.FindOne(ctx, bson.M{"_id": airportID}).Decode(&airport)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "iArport not found")
+
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding airport")
+			utils.Logger.Warn("Failed to find airport")
+		}
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Fetched airport", map[string]interface{}{})
+}
+
+
 // routes
 func CreateRoute(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -591,3 +661,73 @@ func DeleteRoute(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Route Deleted", map[string]interface{}{})
 
 }
+
+func GetRoutes(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Get Allowed")
+		return
+	}
+
+	routeCollection := database.DB.Collection("routes")
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := routeCollection.Find(ctx, bson.M{})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding routes")
+		utils.Logger.Warn("Failed to fetch routes")
+		return
+	}
+
+	defer cursor.Close(ctx)
+
+	var routes []model.Route
+	if err := cursor.All(ctx, &routes); err != nil {
+		utils.Logger.Warn("Failed to decode routes")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error decodeing routes")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Fetched routes", routes)
+}
+
+func GetRoute(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	routeIDStr := vars["routeID"]
+	if routeIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing route ID")
+		return
+	}
+
+	routeID, err := primitive.ObjectIDFromHex(routeIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid route ID")
+		return
+	}
+
+	routeCollection := database.DB.Collection("routes")
+	var route model.Route
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = routeCollection.FindOne(ctx, bson.M{"_id": routeID}).Decode(&route)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "Route not found")
+
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding route")
+			utils.Logger.Warn("Failed to find route")
+		}
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Fetched route", map[string]interface{}{})
+}
+
