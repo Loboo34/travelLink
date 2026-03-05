@@ -34,11 +34,11 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		Description        string                   `json:"description"`
 		Destination        string                   `json:"destination"`
 		DurationDays       int                      `json:"durationDays"`
-		StartDateFrom      time.Time                `json:"startDateFrom"`
-		StartDateTo        time.Time                `json:"startDateTo"`
-		BasePrice          float64                  `json:"basePrice"`
-		IncludedComponents []model.ComponentSummary `json:"includedComponents"`
-		Tags               []string                 `json:"tags"`
+		StartDateFrom      *time.Time               `json:"startDateFrom"`
+		StartDateTo        *time.Time               `json:"startDateTo"`
+		BasePrice          int64                    `json:"basePrice"`
+		IncludedComponents []model.PackageComponent `json:"includedComponents"`
+		Tags               []model.PackageTag       `json:"tags"`
 		Images             []string                 `json:"images"`
 		ExpiresAt          time.Time                `json:"expiresAt"`
 	}
@@ -115,11 +115,12 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 		Description        string                   `json:"desription"`
 		Destination        string                   `json:"desination"`
 		DurationDays       int                      `json:"durationDays"`
-		StartDateFrom      time.Time                `json:"startDateFrom"`
-		StartDateTo        time.Time                `json:"startDateTo"`
-		BasePrice          float64                  `json:"basePrice"`
-		IncludedComponents []model.ComponentSummary `json:"includedComponents"`
-		Tags               []string                 `json:"tags"`
+		StartDateFrom      *time.Time               `json:"startDateFrom"`
+		StartDateTo        *time.Time               `json:"startDateTo"`
+		MaxTravelers       int                      `json:"maxTravelers"`
+		BasePrice          int64                    `json:"basePrice"`
+		IncludedComponents []model.PackageComponent `json:"includedComponents"`
+		Tags               []model.PackageTag       `json:"tags"`
 		Images             []string                 `json:"images"`
 	}
 
@@ -152,6 +153,7 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 			"durationDays":       req.DurationDays,
 			"StartDateFrom":      req.StartDateFrom,
 			"startDateTo":        req.StartDateTo,
+			"maxTravelers":       req.MaxTravelers,
 			"basePrice":          req.BasePrice,
 			"includedComponents": req.IncludedComponents,
 			"tags":               req.Tags,
@@ -291,4 +293,3 @@ func DeletePackage(w http.ResponseWriter, r *http.Request) {
 }
 
 // package stats
-
