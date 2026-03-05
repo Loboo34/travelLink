@@ -36,6 +36,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		DurationDays       int                      `json:"durationDays"`
 		StartDateFrom      *time.Time               `json:"startDateFrom"`
 		StartDateTo        *time.Time               `json:"startDateTo"`
+		Currency           string                   `json:"currency"`
 		BasePrice          int64                    `json:"basePrice"`
 		IncludedComponents []model.PackageComponent `json:"includedComponents"`
 		Tags               []model.PackageTag       `json:"tags"`
@@ -72,6 +73,8 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		Images:             req.Images,
 		ExpiresAt:          *expiresAt,
 		IsActive:           true,
+		ReviewCount: 0,
+		Rating: 0.0,
 	}
 
 	_, err = packageCollection.InsertOne(ctx, create)

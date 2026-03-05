@@ -30,14 +30,14 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Title           string   `json:"title"`
-		Description     string   `json:"description"`
-		Location        model.GeoLocation   `json:"location"`
+		Title           string                   `json:"title"`
+		Description     string                   `json:"description"`
+		Location        model.GeoLocation        `json:"location"`
 		Categories      []model.ActivityCategory `json:"categories"`
-		DurationMinutes int      `json:"durationMinutes"`
-		Inclusions      []string `json:"inclusions"`
-		Exclusions      []string `json:"exclusions"`
-		Images          []string `json:"images"`
+		DurationMinutes int                      `json:"durationMinutes"`
+		Inclusions      []string                 `json:"inclusions"`
+		Exclusions      []string                 `json:"exclusions"`
+		Images          []string                 `json:"images"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,6 +60,9 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 		Inclusions:      req.Inclusions,
 		Exclusions:      req.Exclusions,
 		Images:          req.Images,
+		ReviewCount: 0,
+		Rating: 0.0,
+		IsActive: true,
 	}
 
 	_, err = activityCollection.InsertOne(ctx, create)
@@ -225,8 +228,8 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		ActivityID      primitive.ObjectID `json:"activityID"`
 		StartTime       time.Time          `json:"startTime"`
 		DurationMinutes int                `json:"durationMinutes"`
-		AvailableSpots  int                `json:"availableSpots"`
-		PricePerPerson  int64          `json:"pricePerPerson"`
+		TotalSlots      int                `json:"totalSlots"`
+		PricePerPerson  int64              `json:"pricePerPerson"`
 		GroupSizeMax    int                `json:"groupSizeMax"`
 	}
 
@@ -258,7 +261,8 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		ActivityID:      activityID,
 		StartTime:       req.StartTime,
 		DurationMinutes: req.DurationMinutes,
-		AvailableSpots:  req.AvailableSpots,
+		TotalSlots:      req.TotalSlots,
+		ReservedSlots:   0,
 		PricePerPerson:  req.PricePerPerson,
 		GroupSizeMax:    req.GroupSizeMax,
 	}
@@ -276,6 +280,3 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 }
 
 //booking stats
-
-
-

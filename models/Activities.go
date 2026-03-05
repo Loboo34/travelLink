@@ -20,8 +20,8 @@ const (
 )
 
 type MeetingPoint struct {
-	Label    string      `bson:"label" json:"label"`       
-	Location GeoLocation `bson:"location" json:"location"` 
+	Label    string      `bson:"label" json:"label"`
+	Location GeoLocation `bson:"location" json:"location"`
 }
 
 type Activity struct {
@@ -49,8 +49,13 @@ type ActivityTimeslot struct {
 	ActivityID      primitive.ObjectID `bson:"activityID" json:"activityID"`
 	StartTime       time.Time          `bson:"startTime" json:"startTime"`
 	DurationMinutes int                `bson:"durationMinutes" json:"durationMinutes"`
-	AvailableSpots  int                `bson:"availableSpots" json:"availablSpots"`
+	TotalSlots      int                `bson:"totalSlots" json:"totalSlots"`
+	ReservedSlots   int                `bson:"reservedSlots" jso:"reservedSlots"`
 	PricePerPerson  int64              `bson:"pricePerPerson" json:"pricePerPerson"`
 	GroupSizeMax    int                `bson:"groupSizeMax,omitempty" json:"groupSizeMax"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
+}
+
+func (pa *PackageAvailability) ActivityTimeslot() int {
+	return pa.TotalSlots - pa.ReservedSlots
 }

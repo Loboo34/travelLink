@@ -55,20 +55,20 @@ type RoomType struct {
 }
 type Accommodation struct {
 	ID           primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
+	HostID       *primitive.ObjectID `bson:"hostID,omitempty" json:"hostID,omitempty"` // nil for hotels
 	PropertyType PropertyType        `bson:"type" json:"type"`
 	Name         string              `bson:"name" json:"name"`
 	Address      Address             `bson:"address" json:"address"`
 	Description  string              `bson:"description" json:"description"`
+	Amenities    []Amenity           `bson:"amenities" json:"amenities"`
 	Images       []string            `bson:"images" json:"images"`
 	Location     GeoLocation         `bson:"location" json:"location"`
-	Amenities    []Amenity           `bson:"amenities" json:"amenities"`
 	RoomType     []RoomType          `bson:"roomType" json:"roomType"`
 	Rating       float64             `bson:"rating" json:"rating"`
 	ReviewCount  int                 `bson:"reviews" json:"reviews"`
 	CachedAt     time.Time           `bson:"cached_at" json:"cachedAt"`
 	CheckInTime  int                 `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"`
 	CheckOutTime int                 `bson:"checkOutTime,omitempty" json:"checkOutTime,omitempty"`
-	HostID       *primitive.ObjectID `bson:"hostID,omitempty" json:"hostID,omitempty"` // nil for hotels
 	IsActive     bool                `bson:"isActive" json:"isActive"`
 }
 

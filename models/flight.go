@@ -36,7 +36,7 @@ type FlightOffer struct {
 	ProviderReference string               `bson:"providerReference" json:"providerReference"`
 	Provider          string               `bson:"provider" json:"provider"`
 	OneWay            bool                 `bson:"oneway" json:"oneway"`
-	Segments          []primitive.ObjectID `bson:"flight" json:"flight"`
+	Segments          []primitive.ObjectID `bson:"segments" json:"segments"`
 	PriceTotal        int64                `bson:"priceTotal" json:"priceTotal"`
 	BaggageAllowance  BaggageAllowance     `bson:"baggageAllowance,omitempty" json:"baggageAllowance,omitempty"`
 	LastTicketingDate *time.Time           `bson:"lastTicketingDate,omitempty" json:"lastTicketingDate,omitempty"`

@@ -231,9 +231,10 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		FlightID          string                 `json:"flightID"`
-		Provider          string                 `json:"provider"`
 		ProviderReference string                 `json:"providerReference"`
+		Provider          string                 `json:"provider"`
 		OneWay            bool                   `json:"oneWay"`
+		Segments          []primitive.ObjectID   `json:"segments"`
 		Price             int64                  `json:"price"`
 		BaggageAllowance  model.BaggageAllowance `json:"baggageAllowance"`
 		LastTicketingDate time.Time              `json:"lastTicketingDate"`
@@ -294,6 +295,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		ProviderReference: req.ProviderReference,
 		Provider:          req.Provider,
 		OneWay:            req.OneWay,
+		Segments:          req.Segments,
 		PriceTotal:        req.Price,
 		BaggageAllowance:  req.BaggageAllowance,
 		LastTicketingDate: lastTicketingDate,
@@ -469,6 +471,69 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Offer status updated", map[string]interface{}{
 		"isActive": req.IsActive,
 	})
+}
+
+func UpdateFlightStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only POST allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing andmin ID")
+		return
+	}
+	vars := mux.Vars(r)
+	flightIDStr := vars["flightID"]
+	if flightIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing flight ID")
+		return
+	}
+
+	flightID, err := primitive.ObjectIDFromHex(flightIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+	var req struct {
+		Status model.FlightStatus `json:"status"`
+	}
+
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	flightCollection := database.DB.Collection("flights")
+	var flight model.Flight
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
+		}
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": req.Status,
+		},
+	}
+
+	_, err = flightCollection.UpdateOne(ctx, bson.M{"_id": flightID}, update)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating flight status")
+		utils.Logger.Warn("Failed to update flight status")
+		return
+	}
+utils.RespondWithJson(w, http.StatusOK, "Flight status updated", map[string]interface{}{})
 }
 
 // delete offer
