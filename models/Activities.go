@@ -6,13 +6,33 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type ActivityCategory string
+
+const (
+	ActivityCategoryAdventure   ActivityCategory = "adventure"
+	ActivityCategoryWellness    ActivityCategory = "wellness"
+	ActivityCategoryCultural    ActivityCategory = "cultural"
+	ActivityCategoryFood        ActivityCategory = "food_and_drink"
+	ActivityCategoryNature      ActivityCategory = "nature"
+	ActivityCategorySightseeing ActivityCategory = "sightseeing"
+	ActivityCategoryWater       ActivityCategory = "water_sports"
+	ActivityCategoryNightlife   ActivityCategory = "nightlife"
+)
+
+type MeetingPoint struct {
+	Label    string      `bson:"label" json:"label"`       
+	Location GeoLocation `bson:"location" json:"location"` 
+}
+
 type Activity struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title           string             `bson:"title" json:"title"`
-	Price           float64            `bson:"price" json:"price"`
 	Description     string             `bson:"description" json:"description"`
-	Location        string             `bson:"location" json:"location"`
-	Categories      []string           `bson:"categories" json:"categories"`
+	City            string             `bson:"city" json:"city"`
+	Country         string             `bson:"country" json:"country"`
+	Location        GeoLocation        `bson:"location" json:"location"`
+	MeetingPoint    MeetingPoint       `bson:"meetingPoint" json:"meetingPoint"`
+	Categories      []ActivityCategory `bson:"categories" json:"categories"`
 	DurationMinutes int                `bson:"durationMinutes" json:"durationMinutes"`
 	Inclusions      []string           `bson:"inclusions" json:"inclusions,omitempty"`
 	Exclusions      []string           `bson:"exclusions" json:"exclusions,omitempty"`
@@ -21,14 +41,16 @@ type Activity struct {
 	ReviewCount     int                `bson:"reviewCount" json:"reviewCount,omitempty"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
 	CachedAt        time.Time          `bson:"cachedAt" json:"cachedAt"`
+	IsActive        bool               `bson:"isActive" json:"isActive"`
 }
 
 type ActivityTimeslot struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty"`
-	ActivityID      primitive.ObjectID `bson:"activityID"`
-	StartTime       time.Time          `bson:"startTime"`
-	DurationMinutes int                `bson:"durationMinutes"`
-	AvailableSpots  int                `bson:"availableSpots"`
-	PricePerPerson  float64            `bson:"pricePerPerson"`
-	GroupSizeMax    int                `bson:"groupSizeMax,omitempty"`
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ActivityID      primitive.ObjectID `bson:"activityID" json:"activityID"`
+	StartTime       time.Time          `bson:"startTime" json:"startTime"`
+	DurationMinutes int                `bson:"durationMinutes" json:"durationMinutes"`
+	AvailableSpots  int                `bson:"availableSpots" json:"availablSpots"`
+	PricePerPerson  int64              `bson:"pricePerPerson" json:"pricePerPerson"`
+	GroupSizeMax    int                `bson:"groupSizeMax,omitempty" json:"groupSizeMax"`
+	IsActive        bool               `bson:"isActive" json:"isActive"`
 }

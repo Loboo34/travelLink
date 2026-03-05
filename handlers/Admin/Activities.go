@@ -31,10 +31,9 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		Title           string   `json:"title"`
-		Price           float64  `json:"price"`
 		Description     string   `json:"description"`
-		Location        string   `json:"location"`
-		Categories      []string `json:"categories"`
+		Location        model.GeoLocation   `json:"location"`
+		Categories      []model.ActivityCategory `json:"categories"`
 		DurationMinutes int      `json:"durationMinutes"`
 		Inclusions      []string `json:"inclusions"`
 		Exclusions      []string `json:"exclusions"`
@@ -54,7 +53,6 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	create := model.Activity{
 		ID:              primitive.NewObjectID(),
 		Title:           req.Title,
-		Price:           req.Price,
 		Description:     req.Description,
 		Location:        req.Location,
 		Categories:      req.Categories,
@@ -228,7 +226,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		StartTime       time.Time          `json:"startTime"`
 		DurationMinutes int                `json:"durationMinutes"`
 		AvailableSpots  int                `json:"availableSpots"`
-		PricePerPerson  float64            `json:"pricePerPerson"`
+		PricePerPerson  int64          `json:"pricePerPerson"`
 		GroupSizeMax    int                `json:"groupSizeMax"`
 	}
 
