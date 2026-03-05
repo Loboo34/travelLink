@@ -6,36 +6,80 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Accommodation struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	PropertyType string             `bson:"type" json:"type"`
-	Name         string             `bson:"name" json:"name"`
-	Address      string             `bson:"address" json:"address"`
-	Amenities    []string           `bson:"amenities" json:"amenities"`
-	Description  string             `bson:"description" json:"description"`
-	Images       []string           `bson:"images" json:"images"`
-	Location     string             `bson:"location" json:"location"`
-	Fee          float64            `bson:"fee" json:"fee"`
-	Rating       float64            `bson:"rating" json:"rating"`
-	Reviews      []string           `bson:"reviews" json:"reviews"`
-	CachedAt     time.Time          `bson:"cached_at" json:"cachedAt"`
+type PropertyType string
 
-	MaxGuests     int                `bson:"maxGuests,omitempty" json:"maxGuests,omitempty"`
-	Bedrooms      int                `bson:"bedrooms,omitempty" json:"bedrooms,omitempty"`
-	Bathrooms     int                `bson:"bathrooms,omitempty" json:"bathrooms,omitempty"`
-	IsEntirePlace bool               `bson:"isEntirePlace" json:"isEntirePlace"`       // true for cottage/BnB, false for hotel rooms
-	HostID        primitive.ObjectID `bson:"hostID,omitempty" json:"hostID,omitempty"` // for BnB hosts
-	CheckInTime   string             `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"`
-	CheckOutTime  string             `bson:"checkOutTime,omitempty" json:"checkOutTime,omitempty"`
-	IsActive      bool               `bson:"isActive" json:"isActive"`
+const (
+	PropertyTypeHotel      PropertyType = "Hotel"
+	PropertyTypeAirBnb     PropertyType = "AirBNB"
+	PropertyTypeVilla      PropertyType = "Villa"
+	PropertyTypeResort     PropertyType = "Resort"
+	PropertyTypeGuesthouse PropertyType = "guesthouse"
+)
+
+type Amenity string
+
+const (
+	AmenityWifi        Amenity = "wifi"
+	AmenityParking     Amenity = "parking"
+	AmenityPool        Amenity = "pool"
+	AmenityGym         Amenity = "gym"
+	AmenityAirCon      Amenity = "airConditioning"
+	AmenityBreakfast   Amenity = "breakfast"
+	AmenityPetFriendly Amenity = "petFriendly"
+	AmenityKitchen     Amenity = "kitchen"
+)
+
+type Address struct {
+	Street  string `bson:"street" json:"street"`
+	City    string `bson:"city" json:"city"`
+	Country string `bson:"country" json:"country"`
+	ZipCode string `bson:"zipCode" json:"zipCode"`
+}
+
+type GeoLocation struct {
+	Type        string    `bson:"type" json:"type"`               // always "Point"
+	Coordinates []float64 `bson:"coordinates" json:"coordinates"` // [longitude, latitude]
+}
+
+type RoomType struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name"`
+	Description   string             `bson:"description" json:"description"`
+	Bedrooms      int                `bson:"bedrooms" json:"bedrooms"`
+	Bathrooms     int                `bson:"bathrooms" json:"bathrooms"`
+	MaxGuests     int                `bson:"maxGuests" json:"maxGuests"`
+	IsEntirePlace bool               `bson:"isEntirePlace" json:"isEntirePlace"`
+	Amenities     []Amenity          `bson:"amenities" json:"amenities"`
+	Images        []string           `bson:"images" json:"images"`
+	BasePrice     int64              `bson:"basePrice" json:"basePrice"`
+}
+type Accommodation struct {
+	ID           primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
+	PropertyType PropertyType        `bson:"type" json:"type"`
+	Name         string              `bson:"name" json:"name"`
+	Address      Address             `bson:"address" json:"address"`
+	Description  string              `bson:"description" json:"description"`
+	Images       []string            `bson:"images" json:"images"`
+	Location     GeoLocation         `bson:"location" json:"location"`
+	Amenities    []Amenity           `bson:"amenities" json:"amenities"`
+	RoomType     []RoomType          `bson:"roomType" json:"roomType"`
+	Rating       float64             `bson:"rating" json:"rating"`
+	ReviewCount  int                 `bson:"reviews" json:"reviews"`
+	CachedAt     time.Time           `bson:"cached_at" json:"cachedAt"`
+	CheckInTime  int                 `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"`
+	CheckOutTime int                 `bson:"checkOutTime,omitempty" json:"checkOutTime,omitempty"`
+	HostID       *primitive.ObjectID `bson:"hostID,omitempty" json:"hostID,omitempty"` // nil for hotels
+	IsActive     bool                `bson:"isActive" json:"isActive"`
 }
 
 type AccommodationAvailability struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	AccommodationID primitive.ObjectID `bson:"accommodationID" json:"accommodation"`
+	AccommodationID primitive.ObjectID `bson:"accommodationID" json:"accommodationID"`
+	RoomTypeID      primitive.ObjectID `bson:"roomTypeID" json:"roomTypeID"`
 	Date            time.Time          `bson:"date" json:"date"`
-	AvailableRooms  int                `bson:"availableRooms" json:"availableRooms"`
-	PricePerNight   float64            `bson:"pricePerNight" json:"pricePerNight"`
+	TotalRooms      int                `bson:"totalRooms" json:"totalRooms"`
+	ReservedRooms   int                `bson:"reservedRooms" json:"reservedRooms"`
+	PricePerNight   int64              `bson:"pricePerNight" json:"pricePerNight"`
 	Currency        string             `bson:"currency" json:"currency"`
-	RoomType        string             `bson:"roomType" json:"roomType"`
+	IsActive        bool               `bson:"isActive" json:"isActive"`
 }

@@ -30,14 +30,15 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		PropertyType string   `json:"propertyType"`
-		Name         string   `json:"name"`
-		Address      string   `json:"address"`
-		Amenities    []string `json:"amenities"`
-		Description  string   `json:"description"`
-		Images       []string `json:"images"`
-		Location     string   `json:"location"`
-		Fee          float64  `json:"fee"`
+		HostID       *primitive.ObjectID `json:"hostID"`
+		PropertyType model.PropertyType  `json:"propertyType"`
+		Name         string              `json:"name"`
+		Address      model.Address       `json:"address"`
+		Amenities    []model.Amenity     `json:"amenities"`
+		Description  string              `json:"description"`
+		Images       []string            `json:"images"`
+		Location     model.GeoLocation   `json:"location"`
+		RoomType     []model.RoomType      `json:"roomType"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -52,6 +53,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 
 	accommodation := model.Accommodation{
 		ID:           primitive.NewObjectID(),
+		HostID:       req.HostID,
 		PropertyType: req.PropertyType,
 		Name:         req.Name,
 		Address:      req.Address,
@@ -59,8 +61,9 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		Description:  req.Description,
 		Images:       req.Images,
 		Location:     req.Location,
-		Fee:          req.Fee,
+		RoomType:     req.RoomType,
 		Rating:       0,
+		ReviewCount:  0,
 	}
 
 	_, err = accommodationCollection.InsertOne(ctx, accommodation)
@@ -281,8 +284,3 @@ func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 }
 
 //booking stats
-
-
-
-
-
