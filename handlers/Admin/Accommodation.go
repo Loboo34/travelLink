@@ -15,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// admin
 // Create accommodaion
 func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -64,6 +63,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		RoomType:     req.RoomType,
 		Rating:       0,
 		ReviewCount:  0,
+		CreatedAt: time.Now(),
 	}
 
 	_, err = accommodationCollection.InsertOne(ctx, accommodation)
@@ -104,7 +104,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name        float64  `json:"name"`
+		Name        string   `json:"name"`
 		Description string   `json:"description"`
 		Amenities   []string `json:"amenities"`
 		Images      []string `json:"images"`
@@ -137,6 +137,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 			"description": req.Description,
 			"amenities":   req.Amenities,
 			"images":      req.Images,
+			"updatedAt" :time.Now(),
 		},
 	}
 
@@ -183,12 +184,11 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		RoomTypeID      primitive.ObjectID `json:"roomType"`
-		AccommodationID string             `json:"accommodationID"`
-		Date            time.Time          `json:"date"`
-		TotalRooms      int                `json:"totalRooms"`
-		ReservedRooms   int                `json:"reserveRooms"`
-		PricePerNight   int64              `json:"pricePerNight"`
+		RoomTypeID    primitive.ObjectID `json:"roomType"`
+		Date          time.Time          `json:"date"`
+		TotalRooms    int                `json:"totalRooms"`
+		PricePerNight int64              `json:"pricePerNight"`
+		Currency      string             `json:"currency"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -222,7 +222,9 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 		TotalRooms:      req.TotalRooms,
 		ReservedRooms:   0,
 		PricePerNight:   req.PricePerNight,
+		Currency:        req.Currency,
 		IsActive:        true,
+		CreatedAt: time.Now(),
 	}
 
 	_, err = availabilityCollection.InsertOne(ctx, create)

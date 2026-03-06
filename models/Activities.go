@@ -39,7 +39,8 @@ type Activity struct {
 	Images          []string           `bson:"images" json:"images,omitempty"`
 	Rating          float64            `bson:"rating" json:"rating,omitempty"`
 	ReviewCount     int                `bson:"reviewCount" json:"reviewCount,omitempty"`
-	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
 	CachedAt        time.Time          `bson:"cachedAt" json:"cachedAt"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 }
@@ -54,7 +55,8 @@ type ActivityTimeslot struct {
 	PricePerPerson  int64              `bson:"pricePerPerson" json:"pricePerPerson"`
 	GroupSizeMax    int                `bson:"groupSizeMax,omitempty" json:"groupSizeMax"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
-	CreatedAt       time.Time          `bson:"creatdAt" json:"createdAt"`
+	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
 }
 
 func (pa *PackageAvailability) ActivityTimeslot() int {

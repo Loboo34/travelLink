@@ -15,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// admin
 // create package
 func CreatePackage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -77,6 +76,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		IsActive:           true,
 		ReviewCount:        0,
 		Rating:             0.0,
+		CreatedAt: time.Now(),
 	}
 
 	_, err = packageCollection.InsertOne(ctx, create)
@@ -163,6 +163,7 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 			"includedComponents": req.IncludedComponents,
 			"tags":               req.Tags,
 			"images":             req.Images,
+			"updatedAt": time.Now(),
 		},
 	}
 

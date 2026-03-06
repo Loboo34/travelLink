@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// admin
+
 // Create activity
 func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -144,6 +144,7 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 			"durationMinutes": req.DurationMinutes,
 			"inclusions":      req.Inclusions,
 			"exclusion":       req.Exclusions,
+			"updatedAt": time.Now(),
 		},
 	}
 

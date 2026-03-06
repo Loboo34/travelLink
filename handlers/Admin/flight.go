@@ -15,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// admin
 // add flight
 func AddFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -37,7 +36,7 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 		AirlineID     primitive.ObjectID       `json:"airline"`
 		FlightNumber  string                   `json:"flightNumber"`
 		CabinClass    []model.FlightCabinClass `json:"cabinClass"`
-		Stops         int                      `json:"stops"`
+		Segments      []primitive.ObjectID     `json:"segments"`
 		PlaneID       primitive.ObjectID       `json:"planeType"`
 		Status        string                   `json:"status"`
 	}
@@ -61,9 +60,11 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 		AirlineID:     req.AirlineID,
 		FlightNumber:  req.FlightNumber,
 		CabinClass:    req.CabinClass,
-		Stops:         req.Stops,
+		Segments:      req.Segments,
+		Stops:         len(req.Segments) - 1,
 		PlaneID:       req.PlaneID,
 		Status:        "Scheduled",
+		CreatedAt:     time.Now(),
 	}
 
 	_, err = flightCollection.InsertOne(ctx, flight)
@@ -138,6 +139,7 @@ func UpdateFight(w http.ResponseWriter, r *http.Request) {
 			"departureTime": req.DepartureTime,
 			"arrivalTime":   req.ArrivalTime,
 			"stops":         req.Stops,
+			"updatedAt":     time.Now(),
 		},
 	}
 	_, err = flightCollection.UpdateOne(ctx, bson.M{"_id": flightID}, update)
