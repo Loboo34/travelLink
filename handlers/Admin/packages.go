@@ -36,8 +36,9 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		DurationDays       int                      `json:"durationDays"`
 		StartDateFrom      *time.Time               `json:"startDateFrom"`
 		StartDateTo        *time.Time               `json:"startDateTo"`
-		Currency           string                   `json:"currency"`
+		MaxTravelers       int                      `json:"maxTravelers"`
 		BasePrice          int64                    `json:"basePrice"`
+		Currency           string                   `json:"currency"`
 		IncludedComponents []model.PackageComponent `json:"includedComponents"`
 		Tags               []model.PackageTag       `json:"tags"`
 		Images             []string                 `json:"images"`
@@ -49,7 +50,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	packageCollection := database.DB.Collection("packags")
+	packageCollection := database.DB.Collection("packages")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -67,14 +68,15 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		DurationDays:       req.DurationDays,
 		StartDateFrom:      req.StartDateFrom,
 		StartDateTo:        req.StartDateTo,
+		MaxTravelers:       req.MaxTravelers,
 		BasePrice:          req.BasePrice,
 		IncludedComponents: req.IncludedComponents,
 		Tags:               req.Tags,
 		Images:             req.Images,
 		ExpiresAt:          *expiresAt,
 		IsActive:           true,
-		ReviewCount: 0,
-		Rating: 0.0,
+		ReviewCount:        0,
+		Rating:             0.0,
 	}
 
 	_, err = packageCollection.InsertOne(ctx, create)
@@ -132,7 +134,7 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	packageCollection := database.DB.Collection("packags")
+	packageCollection := database.DB.Collection("packages")
 	var pack model.Package
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -268,27 +270,32 @@ func DeletePackage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	packageCollection := database.DB.Collection("packages")
-	var pack model.Package
+	//var pack model.Package
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = packageCollection.FindOne(ctx, bson.M{"_id": PackageID}).Decode(&pack)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			utils.RespondWithError(w, http.StatusNotFound, "Package not found")
-		} else {
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding package")
-			utils.Logger.Warn("Failed to find package")
-		}
-		return
-	}
+	// err = packageCollection.FindOne(ctx, bson.M{"_id": PackageID}).Decode(&pack)
+	// if err != nil {
+	// 	if err == mongo.ErrNoDocuments {
+	// 		utils.RespondWithError(w, http.StatusNotFound, "Package not found")
+	// 	} else {
+	// 		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding package")
+	// 		utils.Logger.Warn("Failed to find package")
+	// 	}
+	// 	return
+	// }
 
-	_, err = packageCollection.DeleteOne(ctx, bson.M{"_id": PackageID})
+	result, err := packageCollection.DeleteOne(ctx, bson.M{"_id": PackageID})
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting package")
 		utils.Logger.Warn("Failed to delete package ")
 		return
+	}
+
+	if result.DeletedCount == 0{
+		utils.RespondWithError(w, http.StatusNotFound, "Package not found")
+		return 
 	}
 
 	utils.RespondWithJson(w, http.StatusOK, "Deleted package successfully", map[string]interface{}{})

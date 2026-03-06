@@ -54,6 +54,7 @@ type ActivityTimeslot struct {
 	PricePerPerson  int64              `bson:"pricePerPerson" json:"pricePerPerson"`
 	GroupSizeMax    int                `bson:"groupSizeMax,omitempty" json:"groupSizeMax"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
+	CreatedAt       time.Time          `bson:"creatdAt" json:"createdAt"`
 }
 
 func (pa *PackageAvailability) ActivityTimeslot() int {

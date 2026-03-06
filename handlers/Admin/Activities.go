@@ -32,7 +32,10 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Title           string                   `json:"title"`
 		Description     string                   `json:"description"`
+		City            string                   `json:"city"`
+		Country         string                   `json:"country"`
 		Location        model.GeoLocation        `json:"location"`
+		MeetingPoint    model.MeetingPoint       `json:"meetingPoint"`
 		Categories      []model.ActivityCategory `json:"categories"`
 		DurationMinutes int                      `json:"durationMinutes"`
 		Inclusions      []string                 `json:"inclusions"`
@@ -54,15 +57,19 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 		ID:              primitive.NewObjectID(),
 		Title:           req.Title,
 		Description:     req.Description,
+		City:            req.City,
+		Country:         req.Country,
 		Location:        req.Location,
+		MeetingPoint:    req.MeetingPoint,
 		Categories:      req.Categories,
 		DurationMinutes: req.DurationMinutes,
 		Inclusions:      req.Inclusions,
 		Exclusions:      req.Exclusions,
 		Images:          req.Images,
-		ReviewCount: 0,
-		Rating: 0.0,
-		IsActive: true,
+		ReviewCount:     0,
+		Rating:          0.0,
+		IsActive:        true,
+		CreatedAt:       time.Now(),
 	}
 
 	_, err = activityCollection.InsertOne(ctx, create)
@@ -102,11 +109,11 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Title           string   `json:"title"`
-		Price           float64  `json:"price"`
-		DurationMinutes int      `json:"durationMinutes"`
-		Inclusions      []string `json:"inclusions"`
-		Exclusions      []string `json:"exclusions"`
+		Title           string             `json:"title"`
+		MeetingPoint    model.MeetingPoint `json:"price"`
+		DurationMinutes int                `json:"durationMinutes"`
+		Inclusions      []string           `json:"inclusions"`
+		Exclusions      []string           `json:"exclusions"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -133,7 +140,7 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{
 		"$set": bson.M{
 			"title":           req.Title,
-			"price":           req.Price,
+			"meetingPoint":    req.MeetingPoint,
 			"durationMinutes": req.DurationMinutes,
 			"inclusions":      req.Inclusions,
 			"exclusion":       req.Exclusions,
@@ -225,7 +232,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		ActivityID      primitive.ObjectID `json:"activityID"`
+		//ActivityID      primitive.ObjectID `json:"activityID"`
 		StartTime       time.Time          `json:"startTime"`
 		DurationMinutes int                `json:"durationMinutes"`
 		TotalSlots      int                `json:"totalSlots"`
@@ -265,6 +272,8 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		ReservedSlots:   0,
 		PricePerPerson:  req.PricePerPerson,
 		GroupSizeMax:    req.GroupSizeMax,
+		IsActive: true,
+		CreatedAt: time.Now(),
 	}
 
 	_, err = timeSlotCollection.InsertOne(ctx, create)
