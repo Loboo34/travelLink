@@ -29,8 +29,8 @@ type Flight struct {
 	Segments      []primitive.ObjectID `bson:"segments" json:"segments"`
 	PlaneID       primitive.ObjectID   `bson:"planeID" json:"planeID"`
 	Status        FlightStatus         `bson:"status" json:"status"`
-	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	CreatedAt     time.Time            `bson:"createdAt" json:"createdAt"`
+	UpdatedAt     time.Time            `bson:"updatedAt" json:"UpdatedAt"`
 }
 
 type FlightOffer struct {
@@ -47,8 +47,8 @@ type FlightOffer struct {
 	CachedAt          time.Time            `bson:"cached_at" json:"cachedAt"`
 	ExpiresAt         *time.Time           `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 	IsActive          bool                 `bson:"isActive" json:"isActive"`
-	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	CreatedAt         time.Time            `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         time.Time            `bson:"updatedAt" json:"UpdatedAt"`
 }
 
 type PlaneModel struct {

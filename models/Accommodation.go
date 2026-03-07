@@ -67,11 +67,11 @@ type Accommodation struct {
 	Rating       float64             `bson:"rating" json:"rating"`
 	ReviewCount  int                 `bson:"reviews" json:"reviews"`
 	CachedAt     time.Time           `bson:"cached_at" json:"cachedAt"`
-	CheckInTime  int                 `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"`//how to deal with checkin/check out-
+	CheckInTime  int                 `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"` //how to deal with checkin/check out-
 	CheckOutTime int                 `bson:"checkOutTime,omitempty" json:"checkOutTime,omitempty"`
 	IsActive     bool                `bson:"isActive" json:"isActive"`
-	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	CreatedAt    time.Time           `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time           `bson:"updatedAt" json:"UpdatedAt"`
 }
 
 type AccommodationAvailability struct {
@@ -84,6 +84,6 @@ type AccommodationAvailability struct {
 	PricePerNight   int64              `bson:"pricePerNight" json:"pricePerNight"`
 	Currency        string             `bson:"currency" json:"currency"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
-	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"UpdatedAt"`
 }
