@@ -83,29 +83,38 @@ func GetFlight(w http.ResponseWriter, r *http.Request) {
 }
 
 // search flights
-// get flight bookings
-// func GetBookings(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodGet {
-// 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
-// 		return
-// 	}
+func SearchFlight(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
 
-// 	user, err := utils.GetUserID()
-// 	if err != nil {
-// 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
-// 		return
-// 	}
+	origin := r.URL.Query().Get("origin")
+	destination := r.URL.Query().Get("destinatiom")
+	date := r.URL.Query().Get("date")
+
+	search := bson.M{
+		"route.originAirportID":      origin,
+		"route.destinationAirportID": destination,
+		"departureTime": bson.M{
+			"$gte": date,
+		},
+	}
+
+	filter := bson.M{
+		"flightID": bson.M{"$in": flightIDs},
+"isActive": true,
+"bookableSats": bson.M{"$gte": passengers},
+
+	}
+	flightCollection := database.DB.Collection("flights")
+	var flight []model.Flight
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 
+	_,err := flightCollection.Find(ctx, )
 
 
-// 	bookingCollection := database.DB.Collection("bookings")
-
-// 	var history model.BookingHistory
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
-// }
-
-//get flight by routes
-//get flight availability/seats
+}
