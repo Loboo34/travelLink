@@ -163,7 +163,7 @@ func parseSearchParams(q url.Values) (model.FlightSearch, error) {
 
 	// optional fields with defaults handled in Validate()
 	params.CabinClass = model.CabinClassType(q.Get("cabinClass"))
-	params.SortBy = model.SortOptions(q.Get("sortBy"))
+	params.SortBy = model.FlightSortOptions(q.Get("sortBy"))
 
 	page, _ := strconv.Atoi(q.Get("page"))
 	params.Page = page

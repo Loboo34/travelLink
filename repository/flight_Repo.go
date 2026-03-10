@@ -27,7 +27,7 @@ type FlightFilter struct {
 	DepartureTime time.Time
 	CabinClass    model.CabinClassType
 	MinSeats      int
-	SortBy        model.SortOptions
+	SortBy        model.FlightSortOptions
 	Page          int
 	PageSize      int
 }
@@ -106,7 +106,7 @@ func stageMatchSegments(originID primitive.ObjectID,
 		"segmentDocs.destinationID": destinationID,
 	}}}
 }
-func stageSortOffers(sort model.SortOptions) bson.D {
+func stageSortOffers(sort model.FlightSortOptions) bson.D {
 	switch sort {
 	case model.SortByStops:
 		return bson.D{{Key: "$sort", Value: bson.D{
