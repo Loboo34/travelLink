@@ -416,7 +416,7 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight-offers")
+	offerCollection := database.DB.Collection("flightOffers")
 	var offer model.FlightOffer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -499,7 +499,7 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight-offers")
+	offerCollection := database.DB.Collection("flightOffers")
 	//var offer model.FlightOffer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

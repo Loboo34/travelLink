@@ -18,7 +18,8 @@ type FlightSearch struct {
 	Passengers      PassengerCount `bson:"passengers" json:"passengers"`
 	CabinClass      CabinClassType `bson:"cabinClass" json:"cabinClass"`
 	SortBy          SortOptions    `bson:"sirtBy" json:"sortBy"`
-	Pagination      SearchOptions  `bson:"pagination" json:"pagination"`
+	Page            int            `bson:"page" json:"page"`
+	PageSize        int            `bson:"pageSize" json:"pageSize"`
 }
 
 type PassengerCount struct {
@@ -85,11 +86,11 @@ func (p *FlightSearch) Validate() error {
 		p.SortBy = SortByPrice
 	}
 
-	if p.Pagination.Page < 1 {
-		p.Pagination.Page = 1
+	if p.Page < 1 {
+		p.Page = 1
 	}
-	if p.Pagination.PageSize < 1 || p.Pagination.PageSize > 50 {
-		p.Pagination.PageSize = 20
+	if p.PageSize < 1 || p.PageSize > 50 {
+		p.PageSize = 20
 	}
 
 	return nil

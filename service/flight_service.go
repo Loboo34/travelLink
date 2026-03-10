@@ -78,7 +78,7 @@ func (s *FlightService) oneWaySearch(ctx context.Context, params model.FlightSea
 
 func (s *FlightService) roundTripSearch(ctx context.Context, params model.FlightSearch, outboundFilter repository.FlightFilter) (*FlightSearchResults, error) {
 
-	inBoundFilter := repository.FlightFilter{
+	inboundFilter := repository.FlightFilter{
 		OriginID:      outboundFilter.DestinationID,
 		DestinationID: outboundFilter.OriginID,
 		DepartureTime: *params.ReturnDate,
@@ -103,7 +103,7 @@ func (s *FlightService) roundTripSearch(ctx context.Context, params model.Flight
 	}()
 
 	go func() {
-		offers, err := s.FlightRepo.SearchOffers(ctx, inBoundFilter)
+		offers, err := s.FlightRepo.SearchOffers(ctx, inboundFilter)
 		inboundCh <- result{offers, err}
 	}()
 

@@ -126,15 +126,15 @@ func stageSortOffers(sort model.SortOptions) bson.D {
 	}
 }
 
-type AirportRepository struct {
+type AirportRepo struct {
 	db *mongo.Database
 }
 
-func NewAirportRepository(db *mongo.Database) *AirportRepository {
-	return &AirportRepository{db: db}
+func NewAirportRepo(db *mongo.Database) *AirportRepo {
+	return &AirportRepo{db: db}
 }
 
-func (r *AirportRepository) FindIDByCode(ctx context.Context, code string) (primitive.ObjectID, error) {
+func (r *AirportRepo) FindIDByCode(ctx context.Context, code string) (primitive.ObjectID, error) {
 	var airport model.Airport
 
 	err := r.db.Collection("airports").FindOne(ctx, bson.M{
