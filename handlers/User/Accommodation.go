@@ -99,6 +99,7 @@ func (h *AccommodationHandler) AccommodationSearch(w http.ResponseWriter, r *htt
 	}
 
 	
+	
 }
 //get available rooms
 //get accommodation availability

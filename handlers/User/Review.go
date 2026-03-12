@@ -160,4 +160,60 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func DeleteReview(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
+		return
+	}
 
+	userIDStr, err := utils.GetUserID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "missing user ID")
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	reviewIDStr := vars["reviewID"]
+	if reviewIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing review ID")
+		return
+	}
+
+	reviewID, err := primitive.ObjectIDFromHex(reviewIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid review ID")
+		return
+	}
+	reviewCollection := database.DB.Collection("reviews")
+	var review model.Review
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = reviewCollection.FindOne(ctx, bson.M{"_id": reviewID, "userID": userID}).Decode(&review)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "Review not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding ")
+			utils.Logger.Warn("Failed to find the review")
+		}
+		return
+	}
+
+	_, err = reviewCollection.DeleteOne(ctx, bson.M{"_id": reviewID})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting review")
+		utils.Logger.Warn("Failed to delete review")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Review Deleted", "")
+
+}
