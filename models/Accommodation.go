@@ -13,7 +13,7 @@ const (
 	PropertyTypeAirBnb     PropertyType = "AirBNB"
 	PropertyTypeVilla      PropertyType = "Villa"
 	PropertyTypeResort     PropertyType = "Resort"
-	PropertyTypeGuesthouse PropertyType = "guesthouse"
+	PropertyTypeGuesthouse PropertyType = "Guesthouse"
 )
 
 type Amenity string
@@ -66,12 +66,12 @@ type Accommodation struct {
 	RoomType     []RoomType          `bson:"roomType" json:"roomType"`
 	Rating       float64             `bson:"rating" json:"rating"`
 	ReviewCount  int                 `bson:"reviews" json:"reviews"`
-	CachedAt     time.Time           `bson:"cached_at" json:"cachedAt"`
+	CachedAt     time.Time           `bson:"cachedAt" json:"cachedAt"`
 	CheckInTime  int                 `bson:"checkInTime,omitempty" json:"checkInTime,omitempty"` //how to deal with checkin/check out-
 	CheckOutTime int                 `bson:"checkOutTime,omitempty" json:"checkOutTime,omitempty"`
 	IsActive     bool                `bson:"isActive" json:"isActive"`
 	CreatedAt    time.Time           `bson:"createdAt" json:"createdAt"`
-	UpdatedAt    time.Time           `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt    time.Time           `bson:"updatedAt" json:"updatedAt"`
 }
 
 type AccommodationAvailability struct {

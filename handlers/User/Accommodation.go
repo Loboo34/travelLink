@@ -7,6 +7,7 @@ import (
 
 	"github.com/Loboo34/travel/database"
 	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -84,6 +85,21 @@ func GetAccommodation(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Fetched accommodation", accommodation)
 }
 //search accommodations
+type AccommodationHandler struct {
+	accommodationService *service.AccommodationService
+}
+func NewAccommodationHandler(accommodationService *service.AccommodationService)*AccommodationHandler{
+	return &AccommodationHandler{accommodationService: accommodationService}
+}
+
+func (h *AccommodationHandler) AccommodationSearch(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodGet{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return 
+	}
+
+	
+}
 //get available rooms
 //get accommodation availability
 //get by location

@@ -64,11 +64,11 @@ func (a *AccommodationService) Search(ctx context.Context, params model.Accommod
 		return nil, fmt.Errorf("accommodation search: %w", err)
 	}
 
-	//  for i := range results {
-    //     if nights > 0 {
-    //         results[i].PricePerNight = results[i].TotalPrice / int64(nights)
-    //     }
-    // }
+	 for i := range results {
+        if nights > 0 {
+            results[i].PricePerNight = results[i].TotalPrice / int64(nights)
+        }
+    }
 
 	 return &AccommodationSearchResponse{
         Results:  results,
