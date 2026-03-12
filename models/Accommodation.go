@@ -87,3 +87,12 @@ type AccommodationAvailability struct {
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt       time.Time          `bson:"updatedAt" json:"UpdatedAt"`
 }
+
+type AccommodationSearchResult struct {
+	AccommodationID   primitive.ObjectID `bson:"_id" json:"accommodationID"`
+	Accommodation     Accommodation      `bson:"accommodationDoc" json:"accommodation"`
+	PricePerNight     int64              `bson:"pricePerNight" json:"pricePerNight"`
+	MinAvailableRooms int                `bson:"minAvailableRooms" json:"minAvailableRooms"`
+	AvailableNights   int                `bson:"availableNights" json:"availableNights"`
+	Currency          string             `bson:"currency" json:"currency"`
+}

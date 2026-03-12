@@ -31,8 +31,8 @@ type AccommodationFilter struct {
 	PageSize     int
 }
 
-func (r *AccommodationRepo) SearchAccommodationAvailability(ctx context.Context, a *AccommodationFilter) ([]model.AccommodationAvailability, error) {
-	
+func (r *AccommodationRepo) SearchAccommodationAvailability(ctx context.Context, a *AccommodationFilter) ([]model.AccommodationSearchResult, error) {
+
 	nights := int(a.CheckOutDate.Sub(a.CheckInDate).Hours() / 24)
 	totalGuests := a.Guests.Adults + a.Guests.Children + a.Guests.Infants
 	pipeline := mongo.Pipeline{
@@ -55,7 +55,7 @@ func (r *AccommodationRepo) SearchAccommodationAvailability(ctx context.Context,
 
 	defer cursor.Close(ctx)
 
-	var accommodations []model.AccommodationAvailability
+	var accommodations []model.AccommodationSearchResult
 	if err := cursor.All(ctx, &accommodations); err != nil {
 		utils.Logger.Warn("Failed to decode accommodation availability")
 		return nil, fmt.Errorf("%w", err)

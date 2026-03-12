@@ -8,7 +8,7 @@ import (
 
 type Review struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	UserID    primitive.ObjectID `bson"userID" json:"userID"`
+	UserID    primitive.ObjectID `bson:"userID" json:"userID"`
 	Content   string             `bson:"content" json:"content"`
 	Note      string             `bson:"note" json:"note"`
 	ReviewFor ReviewFor          `bson:"reviewFor" json:"reviewFor"`

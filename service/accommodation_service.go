@@ -7,31 +7,20 @@ import (
 
 	model "github.com/Loboo34/travel/models"
 	"github.com/Loboo34/travel/repository"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AccommodationService struct {
 	AccommodationRepo *repository.AccommodationRepo
 }
 
-type AccommodationResults struct {
-    AccommodationID   primitive.ObjectID  `bson:"_id" json:"accommodationID"`
-    Accommodation     model.Accommodation `bson:"accommodationDoc" json:"accommodation"`
-  //  TotalPrice        int64               `bson:"totalPrice" json:"totalPrice"`
-    PricePerNight     int64               `bson:"pricePerNight" json:"pricePerNight"`
-    MinAvailableRooms int                 `bson:"minAvailableRooms" json:"minAvailableRooms"`
-    AvailableNights   int                 `bson:"availableNights" json:"availableNights"`
-    Currency          string              `bson:"currency" json:"currency"`
-}
-
 type AccommodationSearchResponse struct {
-	Results      []AccommodationResults `json:"results"`
-	Total        int64                  `json:"total"`
-	CheckInTime  time.Time              `json:"checkInTime"`
-	CheckOutTime time.Time              `json:"checkOutTime"`
-	Nights       int                    `json:"nights"`
-	Page         int                    `json:"page"`
-	PageSize     int                    `json:"pageSize"`
+	Results      []model.AccommodationSearchResult `json:"results"`
+	Total        int64                             `json:"total"`
+	CheckInTime  time.Time                         `json:"checkInTime"`
+	CheckOutTime time.Time                         `json:"checkOutTime"`
+	Nights       int                               `json:"nights"`
+	Page         int                               `json:"page"`
+	PageSize     int                               `json:"pageSize"`
 }
 
 func NewAccommodationService(repo *repository.AccommodationRepo) *AccommodationService {
@@ -64,19 +53,19 @@ func (a *AccommodationService) Search(ctx context.Context, params model.Accommod
 		return nil, fmt.Errorf("accommodation search: %w", err)
 	}
 
-	 for i := range results {
-        if nights > 0 {
-            results[i].PricePerNight = results[i].TotalPrice / int64(nights)
-        }
-    }
+	//  for i := range results {
+	//     if nights > 0 {
+	//         results[i].PricePerNight = results[i].TotalPrice / int64(nights)
+	//     }
+	// }
 
-	 return &AccommodationSearchResponse{
-        Results:  results,
-        Total:    len(results),
-        Page:     params.Page,
-        PageSize: params.PageSize,
-        Nights:   nights,
-        CheckIn:  params.CheckInDate,
-        CheckOut: params.CheckOutDate,
-    }, nil
-} 
+	return &AccommodationSearchResponse{
+		Results:      results,
+		Total:        int64(len(results)),
+		Page:         params.Page,
+		PageSize:     params.PageSize,
+		Nights:       nights,
+		CheckInTime:  params.ChecKInDate,
+		CheckOutTime: params.CheckOutDate,
+	}, nil
+}
