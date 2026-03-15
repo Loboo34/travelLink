@@ -217,3 +217,17 @@ func DeleteReview(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Review Deleted", "")
 
 }
+
+// func GetReviews(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodGet {
+// 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+// 		return
+// 	}
+
+// 	reviewCollection := database.DB.Collection("reviews")
+
+// 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+// 	defer cancel()
+
+	
+// }

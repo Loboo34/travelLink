@@ -30,7 +30,7 @@ type Flight struct {
 	PlaneID       primitive.ObjectID   `bson:"planeID" json:"planeID"`
 	Status        FlightStatus         `bson:"status" json:"status"`
 	CreatedAt     time.Time            `bson:"createdAt" json:"createdAt"`
-	UpdatedAt     time.Time            `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt     time.Time            `bson:"updatedAt" json:"updatedAt"`
 }
 
 type FlightOffer struct {
@@ -48,7 +48,7 @@ type FlightOffer struct {
 	ExpiresAt         *time.Time           `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 	IsActive          bool                 `bson:"isActive" json:"isActive"`
 	CreatedAt         time.Time            `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         time.Time            `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt         time.Time            `bson:"updatedAt" json:"updatedAt"`
 }
 
 type PlaneModel struct {

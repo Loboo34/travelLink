@@ -85,7 +85,7 @@ type AccommodationAvailability struct {
 	Currency        string             `bson:"currency" json:"currency"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt       time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type AccommodationSearchResult struct {

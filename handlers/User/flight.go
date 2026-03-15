@@ -123,7 +123,7 @@ func parseSearchParams(q url.Values) (model.FlightSearch, error) {
 	params.OriginCode = q.Get("originCode")
 	params.DestinationCode = q.Get("destinationCode")
 
-	depTime, err := time.Parse("", q.Get("depatureTime"))
+	depTime, err := time.Parse("2006-01-02", q.Get("depatureTime"))
 	if err != nil {
 		return params, errors.New("")
 	}
@@ -158,7 +158,7 @@ func parseSearchParams(q url.Values) (model.FlightSearch, error) {
 		if err != nil {
 			return params, errors.New("infants must be a number")
 		}
-		params.Passengers.Infant = infants
+		params.Passengers.Infants = infants
 	}
 
 	// optional fields with defaults handled in Validate()

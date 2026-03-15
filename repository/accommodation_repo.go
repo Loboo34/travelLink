@@ -23,7 +23,7 @@ type AccommodationFilter struct {
 	Location     model.LocationSearch
 	CheckInDate  time.Time
 	CheckOutDate time.Time
-	Guests       model.GuestCount
+	Guests       model.TravelerCount
 	PropertyType model.PropertyType
 	Rooms        int
 	SortBy       model.AccommodationSortOption

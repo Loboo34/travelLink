@@ -46,7 +46,7 @@ type Package struct {
 	ExpiresAt          time.Time          `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 	IsActive           bool               `bson:"isAcive" json:"isActive"`
 	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt          time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type PackageComponent struct {
@@ -70,7 +70,7 @@ type PackageAvailability struct {
 	ReservedSlots int                `bson:"reservedSlots" json:"reservedSlots"`
 	IsActive      bool               `bson:"isActive" json:"isActive"`
 	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt          time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (pa *PackageAvailability) AvailableSlots() int {

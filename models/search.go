@@ -15,21 +15,21 @@ type FlightSearch struct {
 	DestinationCode string            `bson:"destinationCode" json:"destinationCode"`
 	DepartureTime   time.Time         `bson:"departureTime" json:"departureTime"`
 	ReturnDate      *time.Time        `bson:"returnDate" json:"returnDate"` //nil for one way
-	Passengers      PassengerCount    `bson:"passengers" json:"passengers"`
+	Passengers      TravelerCount     `bson:"passengers" json:"passengers"`
 	CabinClass      CabinClassType    `bson:"cabinClass" json:"cabinClass"`
 	SortBy          FlightSortOptions `bson:"sirtBy" json:"sortBy"`
 	Page            int               `bson:"page" json:"page"`
 	PageSize        int               `bson:"pageSize" json:"pageSize"`
 }
 
-type PassengerCount struct {
+type TravelerCount struct {
 	Adults   int `json:"adults"`
 	Children int `json:"children"`
-	Infant   int `json:"infant"`
+	Infants   int `json:"infant"`
 }
 
-func (p PassengerCount) Total() int {
-	return p.Adults + p.Children + p.Infant
+func (p TravelerCount) Total() int {
+	return p.Adults + p.Children + p.Infants
 }
 
 type FlightSortOptions string
@@ -66,7 +66,7 @@ func (p *FlightSearch) Validate() error {
 	if p.Passengers.Adults < 1 {
 		return errors.New("Atleast one adult passanger is needed")
 	}
-	if p.Passengers.Infant > p.Passengers.Adults {
+	if p.Passengers.Infants > p.Passengers.Adults {
 		return errors.New("Infants must not exceed the number of adults")
 	}
 
@@ -100,7 +100,7 @@ type AccommodationSearch struct {
 	Location     LocationSearch          `json:"location"`
 	ChecKInDate  time.Time               `json:"checkInDate"`
 	CheckOutDate time.Time               `json:"checkOutDate"`
-	Guests       GuestCount              `json:"Guests"`
+	Guests       TravelerCount           `json:"Guests"`
 	PropertyType PropertyType            `json:"propertyType"`
 	TotalRooms   int                     `json:"totalRooms"`
 	SortBy       AccommodationSortOption `json:"sortBy"`
@@ -114,12 +114,6 @@ type LocationSearch struct {
 	Latitude  float64 `json:"latitude,omitempty"`
 	Longitude float64 `json:"longitude,omitempty"`
 	RadiusKm  float64 `json:"radiusKm,omitempty"`
-}
-
-type GuestCount struct {
-	Adults   int `json:"adults"`
-	Children int `json:"children"`
-	Infants  int `json:"infants"`
 }
 
 type AccommodationSortOption string
@@ -181,20 +175,15 @@ func (a *AccommodationSearch) Validate() error {
 }
 
 type ActivitySearch struct {
-	Location     LocationSearch      `json:"location"`
-	Participants ParticipantCount    `json:"participants"`
-	ForAllAges   bool                `json:"forAllAges"` //should this be a search thing or filter??
-	Category     ActivityCategory    `json:"category"`
-	Date         time.Time           `json:"date"`
-	SortBy       ActivitySortOptions `json:"sortBy"`
-	Page         int                 `json:"page"`
-	PageSize     int                 `json:"pageSize"`
-}
-
-type ParticipantCount struct {
-	Adults   int `json:"adults"`
-	Children int `json:"children"`
-	Infants  int `json:"infants"`
+	Location           LocationSearch      `json:"location"`
+	Participants       TravelerCount       `json:"participants"`
+	ForAllAges         bool                `json:"forAllAges"` //should this be a search thing or filter??
+	Category           ActivityCategory    `json:"category"`
+	Date               time.Time           `json:"date"`
+	MaxDurationMinutes int                 `json:"maxDurationMinutes"`
+	SortBy             ActivitySortOptions `json:"sortBy"`
+	Page               int                 `json:"page"`
+	PageSize           int                 `json:"pageSize"`
 }
 
 type ActivitySortOptions string

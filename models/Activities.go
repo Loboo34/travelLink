@@ -40,7 +40,7 @@ type Activity struct {
 	Rating          float64            `bson:"rating" json:"rating,omitempty"`
 	ReviewCount     int                `bson:"reviewCount" json:"reviewCount,omitempty"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt       time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
 	CachedAt        time.Time          `bson:"cachedAt" json:"cachedAt"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 }
@@ -56,9 +56,18 @@ type ActivityTimeslot struct {
 	GroupSizeMax    int                `bson:"groupSizeMax,omitempty" json:"groupSizeMax"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt       time.Time          `bson:"updatedAt" json:"UpdatedAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (pa *PackageAvailability) ActivityTimeslot() int {
 	return pa.TotalSlots - pa.ReservedSlots
+}
+
+type ActivitySearchResult struct {
+    ActivityID    primitive.ObjectID `bson:"_id" json:"activityID"`
+    Activity      Activity     `bson:"activityDoc" json:"activity"`
+    PricePerPerson int64             `bson:"pricePerPerson" json:"pricePerPerson"`
+    AvailableSlots int               `bson:"availableSlots" json:"availableSlots"`
+    StartTime     time.Time          `bson:"startTime" json:"startTime"`
+    Currency      string             `bson:"currency" json:"currency"`
 }
