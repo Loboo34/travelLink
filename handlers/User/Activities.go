@@ -2,11 +2,15 @@ package user
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Loboo34/travel/database"
 	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -84,7 +88,115 @@ func GetActivity(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, "Fetched activity", activity)
 }
 
-//search activity
+// search activity
+type ActivityHandler struct {
+	activityService *service.ActivityService
+}
+
+func NewActivityHandler(activityService *service.ActivityService) *ActivityHandler {
+	return &ActivityHandler{activityService: activityService}
+}
+
+func (h *ActivityHandler) ActivitySearch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	params, err := ParceAivityParams(r.URL.Query())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Search param errors")
+		return
+	}
+
+	result, err := h.activityService.Search(r.Context(), params)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error making search")
+		utils.Logger.Warn("Failed to make search")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Results:", result)
+}
+
+func ParceAivityParams(q url.Values) (model.ActivitySearch, error) {
+	var params model.ActivitySearch
+
+	params.Location = model.LocationSearch{
+		City:    q.Get("city"),
+		Country: q.Get("country"),
+	}
+
+	if lat := q.Get("latitude"); lat != "" {
+		parsed, err := strconv.ParseFloat(lat, 64)
+		if err != nil {
+			return params, errors.New("latitude must be a valid number")
+		}
+		params.Location.Latitude = parsed
+	}
+	if lng := q.Get("longitude"); lng != "" {
+		parsed, err := strconv.ParseFloat(lng, 64)
+		if err != nil {
+			return params, errors.New("longitude must be a valid number")
+		}
+		params.Location.Longitude = parsed
+	}
+	if radius := q.Get("radiusKm"); radius != "" {
+		parsed, err := strconv.ParseFloat(radius, 64)
+		if err != nil {
+			return params, errors.New("radiusKm must be a valid number")
+		}
+		params.Location.RadiusKm = parsed
+	}
+
+	date, err := time.Parse("2006-01-02", q.Get("date"))
+	if err != nil {
+		return params, errors.New("wrong date format")
+	}
+	params.Date = date
+	adults, err := strconv.Atoi(q.Get("adults"))
+	if err != nil || adults < 1 {
+		return params, errors.New("adults must be a number greater than 0")
+	}
+	params.Participants.Adults = adults
+
+	if c := q.Get("children"); c != "" {
+		children, err := strconv.Atoi(c)
+		if err != nil {
+			return params, errors.New("children must be a valid number")
+		}
+		params.Participants.Children = children
+	}
+
+	if i := q.Get("infants"); i != "" {
+		infants, err := strconv.Atoi(i)
+		if err != nil {
+			return params, errors.New("infants must be a valid number")
+		}
+		params.Participants.Infants = infants
+	}
+
+	// optional fields
+	if d := q.Get("maxDurationMinutes"); d != "" {
+		duration, err := strconv.Atoi(d)
+		if err != nil {
+			return params, errors.New("maxDurationMinutes must be a valid number")
+		}
+		params.MaxDurationMinutes = duration
+	}
+
+	params.Category = model.ActivityCategory(q.Get("category"))
+	params.SortBy = model.ActivitySortOptions(q.Get("sortBy"))
+	page, _ := strconv.Atoi(q.Get("page"))
+	params.Page = page
+
+	pageSize, _ := strconv.Atoi(q.Get("pageSize"))
+	params.PageSize = pageSize
+
+	return params, nil
+
+}
+
 //get activity time slots
 //check availability
 //get reviews
