@@ -218,16 +218,31 @@ func DeleteReview(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func GetReviews(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodGet {
-// 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
-// 		return
-// 	}
+func GetReviews(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
 
-// 	reviewCollection := database.DB.Collection("reviews")
+	reviewCollection := database.DB.Collection("reviews")
 
-// 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-// 	defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
 
+
+	cursor, err := reviewCollection.Find(ctx, bson.M{})
+	if err != nil{
+		utils.Logger.Warn("Failed to find revies")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding reviews")
+	}
+
+	defer cursor.Close(ctx)
 	
-// }
+	var reviews []model.Review
+	if err := cursor.All(ctx, &reviews); err != nil{
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error decoding reviews")
+		utils.Logger.Warn("Failed to decode reviews")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, "Fetched reviews", reviews)
+}
