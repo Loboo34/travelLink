@@ -33,7 +33,7 @@ type Package struct {
 	Destination        string             `bson:"destination" json:"destination"`
 	DurationDays       int                `bson:"durationDays" json:"durationDays"`
 	StartDateFrom      *time.Time         `bson:"startDateFrom,omitempty" json:"startDateFrom,omitempty"`
-	StartDateTo        *time.Time         `bson:"startDate_to,omitempty" json:"startDateTo,omitempty"`
+	StartDateTo        *time.Time         `bson:"startDateTo,omitempty" json:"startDateTo,omitempty"`
 	MaxTravelers       int                `bson:"maxTravelers" json:"maxTravelers"`
 	BasePrice          int64              `bson:"basePrice" json:"basePrice"`
 	Currency           string             `bson:"currency" json:"currency"`
@@ -42,18 +42,19 @@ type Package struct {
 	Images             []string           `bson:"images" json:"images,omitempty"`
 	Rating             float64            `bson:"rating" json:"rating,omitempty"`
 	ReviewCount        int                `bson:"reviewCount" json:"reviewCount,omitempty"`
-	CachedAt           time.Time          `bson:"cached_at" json:"cached_at"`
-	ExpiresAt          time.Time          `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
-	IsActive           bool               `bson:"isAcive" json:"isActive"`
+	CachedAt           time.Time          `bson:"cachedAt" json:"cachedAt"`
+	ExpiresAt          *time.Time          `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	IsActive           bool               `bson:"isActive" json:"isActive"`
 	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt          time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type PackageComponent struct {
-	ComponentType Component          `bson:"componentType" json:"componentType"`
-	ReferenceID   primitive.ObjectID `bson:"referenceID" json:"referenceID"`
-	Quantity      int                `bson:"quantity" json:"quantity"`
-	Notes         string             `bson:"notes,omitempty" json:"notes,omitempty"`
+ ComponentType Component          `bson:"componentType" json:"componentType"`
+    ReferenceID   primitive.ObjectID `bson:"referenceID" json:"referenceID"`
+    Quantity      int                `bson:"quantity" json:"quantity"`
+    Required      bool               `bson:"required" json:"required"`
+    Notes         string             `bson:"notes,omitempty" json:"notes,omitempty"`
 }
 
 type ComponentSummary struct {
@@ -69,10 +70,12 @@ type PackageAvailability struct {
 	TotalSlots    int                `bson:"totalSlots" json:"totalSlots"`
 	ReservedSlots int                `bson:"reservedSlots" json:"reservedSlots"`
 	IsActive      bool               `bson:"isActive" json:"isActive"`
-	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time          `bson:"updatedAt" json:"updatedAt"`
+	CreatedAt     time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt     time.Time          `bson:"updatedAt" json:"updatedAt"`
+	ExpiresAt *time.Time `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 }
 
 func (pa *PackageAvailability) AvailableSlots() int {
 	return pa.TotalSlots - pa.ReservedSlots
 }
+

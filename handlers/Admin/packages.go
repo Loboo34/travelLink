@@ -41,7 +41,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		IncludedComponents []model.PackageComponent `json:"includedComponents"`
 		Tags               []model.PackageTag       `json:"tags"`
 		Images             []string                 `json:"images"`
-		ExpiresAt          time.Time                `json:"expiresAt"`
+		ExpiresAt          *time.Time                `json:"expiresAt"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -54,10 +54,10 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var expiresAt *time.Time
-	if !req.ExpiresAt.IsZero() {
-		expiresAt = &req.ExpiresAt
-	}
+	// var expiresAt *time.Time
+	// if !req.ExpiresAt.IsZero() {
+	// 	expiresAt = &req.ExpiresAt
+	// }
 
 	create := model.Package{
 		ID:                 primitive.NewObjectID(),
@@ -72,7 +72,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		IncludedComponents: req.IncludedComponents,
 		Tags:               req.Tags,
 		Images:             req.Images,
-		ExpiresAt:          *expiresAt,
+		ExpiresAt:          req.ExpiresAt,
 		IsActive:           true,
 		ReviewCount:        0,
 		Rating:             0.0,
