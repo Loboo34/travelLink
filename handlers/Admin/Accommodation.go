@@ -40,15 +40,91 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		RoomType     []model.RoomType    `json:"roomType"`
 	}
 
-	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
-		return
-	}
+    if v := r.FormValue("address"); v != "" {
+        if err := json.Unmarshal([]byte(v), &req.Address); err != nil {
+            utils.RespondWithError(w, http.StatusBadRequest, "invalid address format")
+            return
+        }
+    }
+    if v := r.FormValue("location"); v != "" {
+        if err := json.Unmarshal([]byte(v), &req.Location); err != nil {
+            utils.RespondWithError(w, http.StatusBadRequest, "invalid location format")
+            return
+        }
+    }
+    if v := r.FormValue("amenities"); v != "" {
+        if err := json.Unmarshal([]byte(v), &req.Amenities); err != nil {
+            utils.RespondWithError(w, http.StatusBadRequest, "invalid amenities format")
+            return
+        }
+    }
+    if v := r.FormValue("roomType"); v != "" {
+        if err := json.Unmarshal([]byte(v), &req.RoomType); err != nil {
+            utils.RespondWithError(w, http.StatusBadRequest, "invalid roomType format")
+            return
+        }
+    }
+    if v := r.FormValue("hostID"); v != "" {
+        id, err := primitive.ObjectIDFromHex(v)
+        if err != nil {
+            utils.RespondWithError(w, http.StatusBadRequest, "invalid hostID format")
+            return
+        }
+        req.HostID = &id
+    }
+
+    req.PropertyType = model.PropertyType(r.FormValue("propertyType"))
+    req.Name = r.FormValue("name")
+    req.Description = r.FormValue("description")
+
+    // validate required text fields before touching Cloudinary
+    if req.Name == "" {
+        utils.RespondWithError(w, http.StatusBadRequest, "name is required")
+        return
+    }
+    if req.PropertyType == "" {
+        utils.RespondWithError(w, http.StatusBadRequest, "propertyType is required")
+        return
+    }
+
+    // upload images to Cloudinary
+    // images are sent as multiple files under the key "images"
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    var imageURLs []string
+
+    if r.MultipartForm != nil && r.MultipartForm.File["images"] != nil {
+        files := r.MultipartForm.File["images"]
+
+        if len(files) > 10 {
+            utils.RespondWithError(w, http.StatusBadRequest, "maximum 10 images allowed")
+            return
+        }
+
+        for _, fileHeader := range files {
+            file, err := fileHeader.Open()
+            if err != nil {
+                utils.RespondWithError(w, http.StatusInternalServerError, "failed to read image file")
+                return
+            }
+            defer file.Close()
+
+            url, err := utils.UploadImage(ctx, file, "accommodations")
+            if err != nil {
+                utils.Logger.Warn("cloudinary upload failed")
+                utils.RespondWithError(w, http.StatusInternalServerError, "image upload failed")
+                return
+            }
+
+            imageURLs = append(imageURLs, url)
+        }
+    }
 
 	accommodationCollection := database.DB.Collection("accommodations")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// defer cancel()
 
 	accommodation := model.Accommodation{
 		ID:           primitive.NewObjectID(),
@@ -58,7 +134,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 		Address:      req.Address,
 		Description:  req.Description,
 		Amenities:    req.Amenities,
-		Images:       req.Images,
+		Images:       imageURLs,
 		Location:     req.Location,
 		RoomType:     req.RoomType,
 		Rating:       0,
@@ -73,7 +149,10 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Successfully created Accommodation")
-	utils.RespondWithJson(w, http.StatusCreated, "Created acommodation", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated, "Created acommodation", map[string]interface{
+		  //"id":      accommodation.ID,
+       // "message": "accommodation created successfully",
+	}{})
 
 }
 

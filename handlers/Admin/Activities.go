@@ -15,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-
 // Create activity
 func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -43,15 +42,109 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 		Images          []string                 `json:"images"`
 	}
 
-	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
+	req.Title = r.FormValue("title")
+	if req.Title == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing activity title")
 		return
 	}
 
+	req.Description = r.FormValue("description")
+	if req.Description == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing activity description")
+		return
+	}
+
+	if v := r.FormValue("city"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.City); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid city format")
+			return
+		}
+	}
+
+	if v := r.FormValue("country"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.Country); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid Country format")
+			return
+		}
+	}
+
+	if v := r.FormValue("location"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.Location); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid location format")
+			return
+		}
+	}
+
+		if v := r.FormValue("meetingPoint"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.MeetingPoint); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid meeting point format")
+			return
+		}
+	}
+
+		if v := r.FormValue("categories"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.Categories); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid category format")
+			return
+		}
+	}
+	if v := r.FormValue("durationMinutes"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.DurationMinutes); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid duration")
+			return
+		}
+	}
+
+		if v := r.FormValue("inclusions"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.Inclusions); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid inclusion format")
+			return
+		}
+	}
+
+		if v := r.FormValue("Exclusion"); v != "" {
+		if err := json.Unmarshal([]byte(v), &req.Exclusions); err != nil {
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid exclusion formart")
+			return
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	  var imageURLs []string
+
+    if r.MultipartForm != nil && r.MultipartForm.File["images"] != nil {
+        files := r.MultipartForm.File["images"]
+
+        if len(files) > 10 {
+            utils.RespondWithError(w, http.StatusBadRequest, "maximum 10 images allowed")
+            return
+        }
+
+        for _, fileHeader := range files {
+            file, err := fileHeader.Open()
+            if err != nil {
+                utils.RespondWithError(w, http.StatusInternalServerError, "failed to read image file")
+                return
+            }
+            defer file.Close()
+
+            url, err := utils.UploadImage(ctx, file, "accommodations")
+            if err != nil {
+                utils.Logger.Warn("cloudinary upload failed")
+                utils.RespondWithError(w, http.StatusInternalServerError, "image upload failed")
+                return
+            }
+
+            imageURLs = append(imageURLs, url)
+        }
+    }
+
 	activityCollection := database.DB.Collection("activities")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// defer cancel()
 
 	create := model.Activity{
 		ID:              primitive.NewObjectID(),
@@ -65,7 +158,7 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 		DurationMinutes: req.DurationMinutes,
 		Inclusions:      req.Inclusions,
 		Exclusions:      req.Exclusions,
-		Images:          req.Images,
+		Images:          imageURLs,
 		ReviewCount:     0,
 		Rating:          0.0,
 		IsActive:        true,
@@ -144,7 +237,7 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 			"durationMinutes": req.DurationMinutes,
 			"inclusions":      req.Inclusions,
 			"exclusion":       req.Exclusions,
-			"updatedAt": time.Now(),
+			"updatedAt":       time.Now(),
 		},
 	}
 
@@ -234,11 +327,11 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		//ActivityID      primitive.ObjectID `json:"activityID"`
-		StartTime       time.Time          `json:"startTime"`
-		DurationMinutes int                `json:"durationMinutes"`
-		TotalSlots      int                `json:"totalSlots"`
-		PricePerPerson  int64              `json:"pricePerPerson"`
-		GroupSizeMax    int                `json:"groupSizeMax"`
+		StartTime       time.Time `json:"startTime"`
+		DurationMinutes int       `json:"durationMinutes"`
+		TotalSlots      int       `json:"totalSlots"`
+		PricePerPerson  int64     `json:"pricePerPerson"`
+		GroupSizeMax    int       `json:"groupSizeMax"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -273,8 +366,8 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		ReservedSlots:   0,
 		PricePerPerson:  req.PricePerPerson,
 		GroupSizeMax:    req.GroupSizeMax,
-		IsActive: true,
-		CreatedAt: time.Now(),
+		IsActive:        true,
+		CreatedAt:       time.Now(),
 	}
 
 	_, err = timeSlotCollection.InsertOne(ctx, create)
