@@ -36,7 +36,7 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		Content   string          `json:"content"`
-		Note      string          `json:"note"`
+		Rating    int             `json:"rating"`
 		ReviewFor model.ReviewFor `json:"reviewFor"`
 	}
 
@@ -45,18 +45,34 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vars := mux.Vars(r)
+
+	referenceIDStr := vars["referenceID"]
+	if referenceIDStr == ""{
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing refference ID")
+		return
+	}
+
+	referenceID, err := primitive.ObjectIDFromHex(referenceIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid reference ID")
+		return 
+	}
+
 	reviewCollection := database.DB.Collection("reviews")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	create := model.Review{
-		ID:        primitive.NewObjectID(),
-		UserID:    userID,
-		Content:   req.Content,
-		Note:      req.Note,
-		ReviewFor: req.ReviewFor,
-		CreatedAt: time.Now(),
+		ID:          primitive.NewObjectID(),
+		UserID:      userID,
+		ReferenceID: referenceID,
+		Content:     req.Content,
+		Rating:      req.Rating,
+		IsVerified: true,
+		ReviewFor:   req.ReviewFor,
+		CreatedAt:   time.Now(),
 	}
 
 	_, err = reviewCollection.InsertOne(ctx, create)
@@ -84,7 +100,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		Content string `json:"content"`
-		Note    string `json:"note"`
+		Rating int `json:"rating"`
 	}
 
 	vars := mux.Vars(r)
@@ -144,7 +160,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{
 		"$set": bson.M{
 			"content":  req.Content,
-			"note":     req.Note,
+			"rating":     req.Rating,
 			"updateAt": time.Now(),
 		},
 	}
@@ -229,17 +245,16 @@ func GetReviews(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-
 	cursor, err := reviewCollection.Find(ctx, bson.M{})
-	if err != nil{
+	if err != nil {
 		utils.Logger.Warn("Failed to find revies")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding reviews")
 	}
 
 	defer cursor.Close(ctx)
-	
+
 	var reviews []model.Review
-	if err := cursor.All(ctx, &reviews); err != nil{
+	if err := cursor.All(ctx, &reviews); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error decoding reviews")
 		utils.Logger.Warn("Failed to decode reviews")
 	}
