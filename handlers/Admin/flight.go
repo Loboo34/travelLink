@@ -251,15 +251,6 @@ func DeleteFlight(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
-	// if err != nil {
-	// 	if err == mongo.ErrNoDocuments {
-	// 		utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
-	// 	} else {
-	// 		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
-	// 	}
-	// 	return
-	// }
 
 	result, err := flightCollection.DeleteOne(ctx, bson.M{"_id": flightID})
 	if err != nil {
@@ -308,7 +299,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offersCollection := database.DB.Collection("flight-offers")
+	offersCollection := database.DB.Collection("flight_offers")
 	//var offer model.FlightOffer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -416,7 +407,7 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flightOffers")
+	offerCollection := database.DB.Collection("flight_offers")
 	var offer model.FlightOffer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -499,7 +490,7 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flightOffers")
+	offerCollection := database.DB.Collection("flight_offers")
 	//var offer model.FlightOffer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -555,7 +546,7 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight-offers")
+	offerCollection := database.DB.Collection("flight_offers")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -575,3 +566,5 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	utils.Logger.Info("Offer deleted successfully")
 	utils.RespondWithJson(w, http.StatusOK, "Offer Deleed", map[string]interface{}{})
 }
+
+//booking stats

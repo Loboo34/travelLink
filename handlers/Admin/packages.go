@@ -54,11 +54,6 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// var expiresAt *time.Time
-	// if !req.ExpiresAt.IsZero() {
-	// 	expiresAt = &req.ExpiresAt
-	// }
-
 	create := model.Package{
 		ID:                 primitive.NewObjectID(),
 		Name:               req.Name,
@@ -276,16 +271,6 @@ func DeletePackage(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// err = packageCollection.FindOne(ctx, bson.M{"_id": PackageID}).Decode(&pack)
-	// if err != nil {
-	// 	if err == mongo.ErrNoDocuments {
-	// 		utils.RespondWithError(w, http.StatusNotFound, "Package not found")
-	// 	} else {
-	// 		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding package")
-	// 		utils.Logger.Warn("Failed to find package")
-	// 	}
-	// 	return
-	// }
 
 	result, err := packageCollection.DeleteOne(ctx, bson.M{"_id": PackageID})
 	if err != nil {

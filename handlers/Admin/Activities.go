@@ -143,8 +143,6 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 
 	activityCollection := database.DB.Collection("activities")
 
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
 
 	create := model.Activity{
 		ID:              primitive.NewObjectID(),
@@ -326,7 +324,6 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		//ActivityID      primitive.ObjectID `json:"activityID"`
 		StartTime       time.Time `json:"startTime"`
 		DurationMinutes int       `json:"durationMinutes"`
 		TotalSlots      int       `json:"totalSlots"`
@@ -339,7 +336,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timeSlotCollection := database.DB.Collection("activity-timeslot")
+	timeSlotCollection := database.DB.Collection("activity_timeslot")
 
 	activityCollection := database.DB.Collection("activities")
 	var activity model.Activity

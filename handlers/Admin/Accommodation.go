@@ -77,7 +77,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
     req.Name = r.FormValue("name")
     req.Description = r.FormValue("description")
 
-    // validate required text fields before touching Cloudinary
+  
     if req.Name == "" {
         utils.RespondWithError(w, http.StatusBadRequest, "name is required")
         return
@@ -87,8 +87,7 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // upload images to Cloudinary
-    // images are sent as multiple files under the key "images"
+ 
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
@@ -123,8 +122,6 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 
 	accommodationCollection := database.DB.Collection("accommodations")
 
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
 
 	accommodation := model.Accommodation{
 		ID:           primitive.NewObjectID(),
@@ -227,11 +224,6 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if result.MatchedCount == 0 {
-	// 	utils.RespondWithError(w, http.StatusNotFound, "Accommodation not found")
-	// 	return
-	// }
-
 	utils.Logger.Info("Accommodation updated")
 	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
 
@@ -275,7 +267,7 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	availabilityCollection := database.DB.Collection("accommodations-availability")
+	availabilityCollection := database.DB.Collection("accommodations_availability")
 	var accommodation model.Accommodation
 
 	accommodationCollection := database.DB.Collection("accommodations")
