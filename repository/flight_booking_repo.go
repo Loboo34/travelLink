@@ -58,6 +58,35 @@ func (r *FlightBookingRepo) ReleaseReservation(ctx context.Context, flightID pri
 	return nil
 }
 
+func (r *FlightBookingRepo) CreateBooking(ctx context.Context, booking *model.FlightBooking) error{
+	_, err := r.db.Collection("flight_booking").InsertOne(ctx, booking)
+	if err != nil{
+		return fmt.Errorf("error creating booking: %w", err)
+	}
+	return  nil
+}
+
+func (r *FlightBookingRepo) UpdateBooking(ctx context.Context, bookingID primitive.ObjectID, status model.BookingStatus, payment *model.Payment ) error {
+	update := bson.M{
+		"$set": bson.M{
+			"status": status,
+			"updatedAt": time.Now(),
+		},
+	}
+
+	if payment != nil{
+		update["$set"].(bson.M)["payment"] = payment
+        update["$set"].(bson.M)["amountPaid"] = payment.TotalAmount
+	}
+
+	_, err := r.db.Collection("flight_booking").UpdateOne(ctx, bson.M{"bookingID": bookingID}, update)
+	if err != nil {
+		return fmt.Errorf("Error updating booking status")
+	}
+
+	return nil 
+}
+
 func (r *FlightBookingRepo) GetBooking(ctx context.Context, bookingID primitive.ObjectID) (*model.FlightBooking, error) {
 	var booking model.FlightBooking
 
