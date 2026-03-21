@@ -20,7 +20,7 @@ func NewAccommodationBookigRepo(db *mongo.Database) *AccommodationBookingRepo {
 }
 
 func (r *AccommodationBookingRepo) CheckAndReserv(ctx context.Context, accommodationID, roomTypeID primitive.ObjectID, checkIn, checkOut time.Time, rooms int) error {
-	//	var accommodationAvailability model.AccommodationAvailability
+	
 
 	startOfDay := time.Date(checkIn.Year(), checkIn.Month(), checkIn.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := time.Date(checkOut.Year(), checkOut.Month(), checkOut.Day(), 0, 0, 0, 0, time.UTC)
