@@ -70,11 +70,11 @@ type AccommodationBookingRequest struct {
 }
 
 func (r *AccommodationBookingRequest) Validate() error {
-	if r.AccommodationID.IsZero(){
+	if r.AccommodationID.IsZero() {
 		return errors.New("Accommodation ID is Required")
 	}
 
-	if r.RoomTypeID.IsZero(){
+	if r.RoomTypeID.IsZero() {
 		return errors.New("Room type ID is required")
 	}
 
@@ -96,13 +96,12 @@ func (r *AccommodationBookingRequest) Validate() error {
 	}
 
 	today := time.Now().UTC().Truncate(24 * time.Hour)
-	  if r.CheckIn.UTC().Before(today) {
-        return errors.New("checkIn date cannot be in the past")
-    }
-    if !r.CheckOut.After(r.CheckIn) {
-        return errors.New("checkOut date must be after check-in date")
-    }
-
+	if r.CheckIn.UTC().Before(today) {
+		return errors.New("checkIn date cannot be in the past")
+	}
+	if !r.CheckOut.After(r.CheckIn) {
+		return errors.New("checkOut date must be after check-in date")
+	}
 
 	// payment
 	switch r.PaymentMethod {
@@ -117,4 +116,51 @@ func (r *AccommodationBookingRequest) Validate() error {
 
 	return nil
 
+}
+
+type ActivityBookingRequest struct {
+	ActivityID         primitive.ObjectID `json:"activityID"`
+	ParticipantDetails []UserDetails      `json:"participantDetails"`
+	TimeSlotID         primitive.ObjectID `json:"timeSlotID"`
+	Participants       int                `json:"participants"`
+	PaymentMethod      PaymentMethod      `json:"paymentMethod"`
+	Currency           string             `json:"currency"`
+}
+
+func (r *ActivityBookingRequest) Validate() error {
+	if r.ActivityID.IsZero() {
+		return errors.New("activityID is required")
+	}
+
+	if r.TimeSlotID.IsZero() {
+		return errors.New("timeslotID is required")
+	}
+
+	if len(r.ParticipantDetails) < 1 {
+		return errors.New("at least one passenger is required")
+	}
+	for i, p := range r.ParticipantDetails {
+		if p.FirstName == "" {
+			return fmt.Errorf("passenger %d: firstName is required", i+1)
+		}
+		if p.LastName == "" {
+			return fmt.Errorf("passenger %d: lastName is required", i+1)
+		}
+	}
+
+	if r.Participants < 0 {
+		r.Participants = 1
+	}
+
+	switch r.PaymentMethod {
+	case PaymentMethodCard, PaymentMethodMpesa, PaymentMethodBank:
+	default:
+		return errors.New("invalid payment method")
+	}
+
+	if r.Currency == "" {
+		r.Currency = "USD" // sensible default
+	}
+
+	return nil
 }
