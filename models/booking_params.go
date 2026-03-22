@@ -164,3 +164,22 @@ func (r *ActivityBookingRequest) Validate() error {
 
 	return nil
 }
+
+type PackageBookingRequest struct {
+	PackageID          primitive.ObjectID `json:"packageID"`
+	TravelersDetails   []UserDetails      `json:"travelersDetails"`
+	ComponentSelection string             `json:"componentSelection"`
+	PaymentMethod      PaymentMethod      `json:"paymentMethod"`
+	Currency           string             `json:"currency"`
+}
+
+type ComponentSelection struct {
+	ComponentType Component           `json:"componentType"`
+	ReferenceID   primitive.ObjectID  `json:"referenceID"`
+	RoomTypeID    *primitive.ObjectID `json:"roomTypeID"`
+	CheckIn       *time.Time          `json:"checkin"`
+	CheckOut      *time.Time          `json:"checkout"`
+	Rooms         int                 `json:"rooms"`
+	Participants  int                 `json:"participants"`
+	TimeslotID    *primitive.ObjectID `json:"timeslotID"`
+}
