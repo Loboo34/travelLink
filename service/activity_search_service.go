@@ -29,7 +29,7 @@ func NewActivityService(repo *repository.ActivityRepo) *ActivityService{
 }
 
 
-func (a *ActivityService) Search(ctx context.Context, params model.ActivitySearch)(*ActivitySearchResponse, error){
+func (s *ActivityService) Search(ctx context.Context, params model.ActivitySearch)(*ActivitySearchResponse, error){
 	if err := params.Validate(); err != nil{
 		return nil, fmt.Errorf("Invalid search params: %w", err)
 	}
@@ -46,7 +46,7 @@ func (a *ActivityService) Search(ctx context.Context, params model.ActivitySearc
 		PageSize: params.PageSize,
 	}
 
-	result, err := a.ActivityRepo.SearchActivity(ctx, &filter)
+	result, err := s.ActivityRepo.SearchActivity(ctx, &filter)
 	if err != nil{
 		return nil, fmt.Errorf("accommodation search error: %w", err)
 	}

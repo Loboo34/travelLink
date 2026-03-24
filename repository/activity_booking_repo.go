@@ -47,7 +47,7 @@ func (r *ActivityBookingRepo) CheckAndReserv(ctx context.Context, activityID, ti
 	return &slot, nil
 }
 
-func (r *ActivityBookingRepo) ReleaseReservation(ctx context.Context, activityID, timeSlotID primitive.ObjectID, participants int) error {
+func (r *ActivityBookingRepo) ReleaseReservation(ctx context.Context,  timeSlotID primitive.ObjectID, participants int) error {
 	_, err := r.db.Collection("activity_timeslots").UpdateOne(ctx, bson.M{
 		"_id": timeSlotID,
 	},

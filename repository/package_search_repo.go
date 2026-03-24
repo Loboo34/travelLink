@@ -24,7 +24,7 @@ type PackageFilter struct {
 	Destination string
 	StartDate   time.Time
 	EndDate     time.Time
-	Travelers   int
+	Travelers   model.TravelerCount
 	MaxBudget   int64
 	Tags        []model.PackageTag
 	Components  []model.Component

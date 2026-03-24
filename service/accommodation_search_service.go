@@ -29,7 +29,7 @@ func NewAccommodationService(repo *repository.AccommodationRepo) *AccommodationS
 	}
 }
 
-func (a *AccommodationService) Search(ctx context.Context, params model.AccommodationSearch) (*AccommodationSearchResponse, error) {
+func (s *AccommodationService) Search(ctx context.Context, params model.AccommodationSearch) (*AccommodationSearchResponse, error) {
 	if err := params.Validate(); err != nil {
 		return nil, fmt.Errorf("Invalid search params: %w", err)
 	}
@@ -48,7 +48,7 @@ func (a *AccommodationService) Search(ctx context.Context, params model.Accommod
 		PageSize:     params.PageSize,
 	}
 
-	results, err := a.AccommodationRepo.SearchAccommodationAvailability(ctx, &filter)
+	results, err := s.AccommodationRepo.SearchAccommodationAvailability(ctx, &filter)
 	if err != nil {
 		return nil, fmt.Errorf("accommodation search: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 	model "github.com/Loboo34/travel/models"
 	"github.com/Loboo34/travel/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -163,4 +164,62 @@ func stageSortAvailability(sort model.AccommodationSortOption) bson.D {
 			{Key: "accommodationDoc.rating", Value: -1},
 		}}}
 	}
+}
+
+var result struct {
+	TotalPrice int64 `bson:"totalPrice"`
+}
+
+func (r *AccommodationRepo) GetTotalPrice(
+	ctx context.Context,
+	accommodationID primitive.ObjectID,
+	roomTypeID primitive.ObjectID,
+	checkIn time.Time,
+	checkOut time.Time,
+) (int64, error) {
+
+	startOfDay := time.Date(checkIn.Year(), checkIn.Month(), checkIn.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := time.Date(checkOut.Year(), checkOut.Month(), checkOut.Day(), 0, 0, 0, 0, time.UTC)
+	nights := int(checkOut.Sub(checkIn).Hours() / 24)
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"accommodationID": accommodationID,
+			"roomTypeID":      roomTypeID,
+			"isActive":        true,
+			"date":            bson.M{"$gte": startOfDay, "$lt": endOfDay},
+		}}},
+		{{Key: "$group", Value: bson.M{
+			"_id":        nil,
+			"totalPrice": bson.M{"$sum": "$pricePerNight"},
+			"nightCount": bson.M{"$sum": 1},
+		}}},
+	}
+
+	cursor, err := r.db.Collection("accommodation_availability").Aggregate(ctx, pipeline)
+	if err != nil {
+		return 0, fmt.Errorf("fetching accommodation price: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		TotalPrice int64 `bson:"totalPrice"`
+		NightCount int   `bson:"nightCount"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return 0, fmt.Errorf("decoding price result: %w", err)
+		}
+	}
+
+	if result.NightCount == 0 {
+		return 0, fmt.Errorf("missing result")
+	}
+
+	if result.NightCount < nights {
+		return 0, fmt.Errorf("nights error: %w", err)
+	}
+
+	return result.TotalPrice, nil
 }
