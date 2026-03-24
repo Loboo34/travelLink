@@ -7,7 +7,6 @@ import (
 	model "github.com/Loboo34/travel/models"
 	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FlightBookingHandler struct {
@@ -25,15 +24,9 @@ func (h *FlightBookingHandler) FLightBooking(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "missing user ID")
-		return
-	}
-
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid user ID")
 		return
 	}
 
@@ -69,15 +62,9 @@ func (h *AccommodationBookingHandler) AccommodationBooking(w http.ResponseWriter
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
-		return
-	}
-
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid user ID")
 		return
 	}
 
@@ -113,27 +100,21 @@ func (h *ActivityBookingHandler) ActivityBooking(w http.ResponseWriter, r *http.
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
 	}
 
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid user ID")
-		return
-	}
-
 	var req model.ActivityBookingRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
-		return 
+		return
 	}
 
 	defer r.Body.Close()
 
-		result, err := h.bookingService.Book(r.Context(), userID, req)
+	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error booking activity")
 		return
@@ -143,7 +124,46 @@ func (h *ActivityBookingHandler) ActivityBooking(w http.ResponseWriter, r *http.
 
 }
 
-//book package
+// book package
+type PackageBookingHandler struct {
+	bookingService *service.PackageBookingService
+}
+
+func NewPackageHandler(bookingService *service.PackageBookingService) *PackageBookingHandler {
+	return &PackageBookingHandler{bookingService: bookingService}
+}
+
+func (h *PackageBookingHandler) PackageBooking(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "only POST allowed")
+		return
+	}
+
+	userID, err := utils.GetUserID()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return
+	}
+
+	var req model.PackageBookingRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return 
+	}
+
+	defer r.Body.Close()
+
+	result, err := h.bookingService.Book(r.Context(), userID, req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error booking activity")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+
+
+}
+
 //get users bookings
 //get booking by id
 //update booking
