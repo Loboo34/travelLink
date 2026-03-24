@@ -168,6 +168,116 @@ func (h *PackageBookingHandler) PackageBooking(w http.ResponseWriter, r *http.Re
 //get booking by id
 //update booking
 //cancel booking
+type CancelFlightBooking struct{
+	cancelService *service.FlightBookingService
+}
+
+func NewCancelHandler(cancelService *service.FlightBookingService) *CancelFlightBooking{
+	return &CancelFlightBooking{cancelService: cancelService}
+}
+
+func (h *CancelFlightBooking) Cancel(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodPost{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Post allowed")
+		return 
+	}
+
+	userID, err := utils.GetUserID()
+	if err != nil{
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return 
+	}
+
+	var req model.Cancellation
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return 
+	}
+
+	defer r.Body.Close()
+
+	result, err := h.cancelService.Cancel(r.Context(), userID, req)
+	if err != nil{
+		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+		return 
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+}
+
+type CancelAccommodationBookingHandler struct{
+	cancelService *service.FlightBookingService
+}
+
+func NewCancelAccommodationBookingHandler(cancelService *service.FlightBookingService) *CancelAccommodationBookingHandler{
+	return &CancelAccommodationBookingHandler{cancelService: cancelService}
+}
+
+func (h *CancelAccommodationBookingHandler) Cancel(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodPost{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Post allowed")
+		return 
+	}
+
+	userID, err := utils.GetUserID()
+	if err != nil{
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return 
+	}
+
+	var req model.Cancellation
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return 
+	}
+
+	defer r.Body.Close()
+
+	result, err := h.cancelService.Cancel(r.Context(), userID, req)
+	if err != nil{
+		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+		return 
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+}
+
+type CancelActivityBooking struct{
+	cancelService *service.FlightBookingService
+}
+
+func NewCancelActivityBooking(cancelService *service.FlightBookingService) *CancelActivityBooking{
+	return &CancelActivityBooking{cancelService: cancelService}
+}
+
+func (h *CancelActivityBooking) Cancel(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodPost{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Post allowed")
+		return 
+	}
+
+	userID, err := utils.GetUserID()
+	if err != nil{
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return 
+	}
+
+	var req model.Cancellation
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return 
+	}
+
+	defer r.Body.Close()
+
+	result, err := h.cancelService.Cancel(r.Context(), userID, req)
+	if err != nil{
+		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+		return 
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+}
 //get ooking history
 //createitinerary
 //get itinerary
