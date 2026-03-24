@@ -57,7 +57,7 @@ func (s *FlightBookingService) Book(ctx context.Context, userID primitive.Object
 		PassengerDetails: req.PassengerDetails,
 		Status:           model.BookingStatusPending,
 		SelectedSeat:     req.SelectedSeats,
-		NumberOfSeats:    uint(seats),
+		NumberOfSeats:    seats,
 		Payment: model.Payment{
 			PaymentMethod: req.PaymentMethod,
 			TotalAmount:   offer.PriceTotal,
@@ -124,6 +124,55 @@ func (s *FlightBookingService) Book(ctx context.Context, userID primitive.Object
 		Status:     model.BookingStatusConfirmed,
 		AmountPaid: offer.PriceTotal,
 		Currency:   req.Currency,
+	}, nil
+
+}
+
+type CancellationResult struct {
+	BookingID    primitive.ObjectID  `json:"bookingID"`
+	Status       model.BookingStatus `json:"status"`
+	RefundStatus model.RefundStatus  `json:"refundStatus"`
+}
+
+func (s *FlightBookingService) Cancel(ctx context.Context, userID primitive.ObjectID, req model.Cancellation) (*CancellationResult, error) {
+	if err := req.Validate(); err != nil {
+		return nil, fmt.Errorf("validation error")
+	}
+
+	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting flight: %w", err)
+	}
+
+	if booking.UserID != userID {
+	return  nil, fmt.Errorf("")
+	}
+
+	if booking.Status != model.BookingStatusConfirmed{
+		return nil, fmt.Errorf("")
+	}
+
+	if err := s.bookingRepo.CancelFlight(ctx, req.BookingID, req.Reason); err != nil {
+		return nil, fmt.Errorf("error cancellign flight")
+	}
+
+	if releaseErr := s.bookingRepo.ReleaseReservation(ctx, booking.OfferReference, booking.NumberOfSeats); releaseErr != nil {
+		utils.Logger.Error("")
+	}
+
+	//payment
+	 if booking.Payment.PaymentReference != "" {
+        if err := s.payment.Refund(
+            ctx, booking.Payment.PaymentReference, booking.AmountPaid,
+        ); err != nil {
+            utils.Logger.Error("")
+           
+        }
+    }
+	return &CancellationResult{
+		BookingID:    req.BookingID,
+		Status:       model.BookingStatusCanceled,
+		RefundStatus: model.RefundStatusPending,
 	}, nil
 
 }

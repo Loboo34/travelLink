@@ -105,3 +105,37 @@ func (r *AccommodationBookingRepo) UpdateBooking(ctx context.Context, bookingID 
 
 	return nil
 }
+
+func (r *AccommodationBookingRepo) GetBooking(ctx context.Context, bookingID primitive.ObjectID) (*model.AccommodationBooking, error) {
+	var booking model.AccommodationBooking
+
+	err := r.db.Collection("accommodation_booking").FindOne(ctx, bson.M{"_id": bookingID}).Decode(&booking)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed fetching booking: %w", err)
+	}
+
+	return &booking, nil
+}
+
+
+func (r *AccommodationBookingRepo) Cancel(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": model.BookingStatusCanceled,
+			"cancellationReason": reason,
+			"refundStautus":      model.BookingStatusCanceled,
+			"cancellationDate":   time.Now(),
+			"updatedAt": time.Now(),
+		},
+	}
+	_, err := r.db.Collection("accommodation_booking").UpdateOne(ctx, bson.M{"_id": bookingID}, update)
+	if err != nil {
+		return fmt.Errorf("error cancelling accommodation: %w", err)
+	}
+	return nil
+
+}

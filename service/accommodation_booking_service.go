@@ -63,6 +63,7 @@ func (s *AccommodationBookingService) Book(ctx context.Context, userID primitive
 		CheckIn:         req.CheckIn,
 		Checkout:        req.CheckOut,
 		Nights:          nights,
+		Rooms: req.Rooms,
 		RoomTypeID:        req.RoomTypeID,
 		Payment: model.Payment{
 			PaymentMethod: req.PaymentMethod,
@@ -126,6 +127,50 @@ func (s *AccommodationBookingService) Book(ctx context.Context, userID primitive
 		Status:     model.BookingStatusConfirmed,
 		AmountPaid: totalPrice,
 		Currency:   req.Currency,
+	}, nil
+
+}
+
+
+func (s *AccommodationBookingService) Cancel(ctx context.Context, userID primitive.ObjectID, req model.Cancellation) (*CancellationResult, error) {
+	if err := req.Validate(); err != nil {
+		return nil, fmt.Errorf("validation error")
+	}
+
+	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting accommodation: %w", err)
+	}
+
+	if booking.UserID != userID {
+	return  nil, fmt.Errorf("")
+	}
+
+	if booking.Status != model.BookingStatusConfirmed{
+		return nil, fmt.Errorf("")
+	}
+
+	if err := s.bookingRepo.Cancel(ctx, req.BookingID, req.Reason); err != nil {
+		return nil, fmt.Errorf("error cancellign accommodation")
+	}
+
+	if releaseErr := s.bookingRepo.ReleaseReservation(ctx, booking.AccommodationID, booking.RoomTypeID, booking.CheckIn, booking.Checkout, booking.Rooms ); releaseErr != nil {
+		utils.Logger.Error("")
+	}
+
+	//payment
+	 if booking.Payment.PaymentReference != "" {
+        if err := s.payment.Refund(
+            ctx, booking.Payment.PaymentReference, booking.AmountPaid,
+        ); err != nil {
+            utils.Logger.Error("")
+           
+        }
+    }
+	return &CancellationResult{
+		BookingID:    req.BookingID,
+		Status:       model.BookingStatusCanceled,
+		RefundStatus: model.RefundStatusPending,
 	}, nil
 
 }

@@ -100,3 +100,22 @@ func (r *FlightBookingRepo) GetBooking(ctx context.Context, bookingID primitive.
 
 	return &booking, nil
 }
+
+func (r *FlightBookingRepo) CancelFlight(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": model.BookingStatusCanceled,
+			"cancellationReason": reason,
+			"refundStautus":      model.BookingStatusCanceled,
+			"cancellationDate":   time.Now(),
+			"updatedAt": time.Now(),
+		},
+	}
+	_, err := r.db.Collection("flight_booking").UpdateOne(ctx, bson.M{"_id": bookingID}, update)
+	if err != nil {
+		return fmt.Errorf("error cancelling flight: %w", err)
+	}
+	return nil
+
+}

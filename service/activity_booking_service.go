@@ -121,3 +121,48 @@ func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.Obje
 		Currency:   req.Currency,
 	}, nil
 }
+
+
+
+func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.ObjectID, req model.Cancellation) (*CancellationResult, error) {
+	if err := req.Validate(); err != nil {
+		return nil, fmt.Errorf("validation error")
+	}
+
+	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting activity: %w", err)
+	}
+
+	if booking.UserID != userID {
+	return  nil, fmt.Errorf("")
+	}
+
+	if booking.Status != model.BookingStatusConfirmed{
+		return nil, fmt.Errorf("")
+	}
+
+	if err := s.bookingRepo.CancelFlight(ctx, req.BookingID, req.Reason); err != nil {
+		return nil, fmt.Errorf("error cancellign activity")
+	}
+
+	if releaseErr := s.bookingRepo.ReleaseReservation(ctx, booking.TimeSlotID, booking.Participants); releaseErr != nil {
+		utils.Logger.Error("")
+	}
+
+	//payment
+	 if booking.Payment.PaymentReference != "" {
+        if err := s.payment.Refund(
+            ctx, booking.Payment.PaymentReference, booking.AmountPaid,
+        ); err != nil {
+            utils.Logger.Error("")
+           
+        }
+    }
+	return &CancellationResult{
+		BookingID:    req.BookingID,
+		Status:       model.BookingStatusCanceled,
+		RefundStatus: model.RefundStatusPending,
+	}, nil
+
+}
