@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type FlightSearch struct {
 type TravelerCount struct {
 	Adults   int `json:"adults"`
 	Children int `json:"children"`
-	Infants   int `json:"infant"`
+	Infants  int `json:"infant"`
 }
 
 func (p TravelerCount) Total() int {
@@ -233,4 +234,97 @@ func (a *ActivitySearch) Validate() error {
 	}
 
 	return nil
+}
+
+type PackageSearchParams struct {
+    Destination string            `json:"destination"`
+    StartDate   time.Time         `json:"startDate"`
+    EndDate     time.Time         `json:"endDate"`
+    Travelers   TravelerCount     `json:"travelers"`
+    MaxBudget   int64             `json:"maxBudget,omitempty"`
+    Tags        []PackageTag      `json:"tags,omitempty"`
+    Components  []Component       `json:"components,omitempty"`
+    SortBy      PackageSortOption `json:"sortBy"`
+    Page        int               `json:"page"`
+    PageSize    int               `json:"pageSize"`
+}
+
+type PackageSortOption string
+
+const (
+    SortPackageByPrice    PackageSortOption = "price"
+    SortPackageByRating   PackageSortOption = "rating"
+    SortPackageByDuration PackageSortOption = "duration"
+)
+
+func (p *PackageSearchParams) Validate() error {
+
+    if p.Destination == "" {
+        return errors.New("destination is required")
+    }
+
+
+    today := time.Now().UTC().Truncate(24 * time.Hour)
+    if p.StartDate.UTC().Before(today) {
+        return errors.New("start date cannot be in the past")
+    }
+    if !p.EndDate.After(p.StartDate) {
+        return errors.New("end date must be after start date")
+    }
+    nights := int(p.EndDate.Sub(p.StartDate).Hours() / 24)
+    if nights < 1 {
+        return errors.New("trip must be at least one night")
+    }
+
+
+    if p.Travelers.Adults < 1 {
+        return errors.New("at least one adult traveler is required")
+    }
+
+  
+    if p.MaxBudget < 0 {
+        return errors.New("budget cannot be negative")
+    }
+
+   
+    validTags := map[PackageTag]bool{
+        PackageTagHoneymoon: true,
+        PackageTagAdventure: true,
+        PackageTagFamily:    true,
+        PackageTagLuxury:    true,
+        PackageTagBudget:    true,
+        PackageTagCultural:  true,
+        PackageTagBeach:     true,
+    }
+    for _, tag := range p.Tags {
+        if !validTags[tag] {
+            return fmt.Errorf("invalid tag: %q", tag)
+        }
+    }
+
+    validComponents := map[Component]bool{
+        ComponentFlight:        true,
+        ComponentAccommodation: true,
+        ComponentActivity:      true,
+    }
+    for _, c := range p.Components {
+        if !validComponents[c] {
+            return fmt.Errorf("invalid component type: %q", c)
+        }
+    }
+
+    switch p.SortBy {
+    case SortPackageByPrice, SortPackageByRating, SortPackageByDuration:
+    default:
+        p.SortBy = SortPackageByPrice
+    }
+
+    if p.Page < 1 {
+        p.Page = 1
+    }
+    if p.PageSize < 1 || p.PageSize > 50 {
+        p.PageSize = 20
+    }
+
+    return nil
 }

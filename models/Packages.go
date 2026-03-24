@@ -43,18 +43,18 @@ type Package struct {
 	Rating             float64            `bson:"rating" json:"rating,omitempty"`
 	ReviewCount        int                `bson:"reviewCount" json:"reviewCount,omitempty"`
 	CachedAt           time.Time          `bson:"cachedAt" json:"cachedAt"`
-	ExpiresAt          *time.Time          `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	ExpiresAt          *time.Time         `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 	IsActive           bool               `bson:"isActive" json:"isActive"`
 	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt          time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type PackageComponent struct {
- ComponentType Component          `bson:"componentType" json:"componentType"`
-    ReferenceID   primitive.ObjectID `bson:"referenceID" json:"referenceID"`
-    Quantity      int                `bson:"quantity" json:"quantity"`
-    Required      bool               `bson:"required" json:"required"`
-    Notes         string             `bson:"notes,omitempty" json:"notes,omitempty"`
+	ComponentType Component          `bson:"componentType" json:"componentType"`
+	ReferenceID   primitive.ObjectID `bson:"referenceID" json:"referenceID"`
+	Quantity      int                `bson:"quantity" json:"quantity"`
+	Required      bool               `bson:"required" json:"required"`
+	Notes         string             `bson:"notes,omitempty" json:"notes,omitempty"`
 }
 
 type ComponentSummary struct {
@@ -72,10 +72,9 @@ type PackageAvailability struct {
 	IsActive      bool               `bson:"isActive" json:"isActive"`
 	CreatedAt     time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt     time.Time          `bson:"updatedAt" json:"updatedAt"`
-	ExpiresAt *time.Time `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
+	ExpiresAt     *time.Time         `bson:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 }
 
 func (pa *PackageAvailability) AvailableSlots() int {
 	return pa.TotalSlots - pa.ReservedSlots
 }
-

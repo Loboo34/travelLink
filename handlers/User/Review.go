@@ -22,17 +22,13 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
 	}
 
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid user ID")
-		return
-	}
+	
 
 	var req struct {
 		Content   string          `json:"content"`
@@ -92,7 +88,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
@@ -116,11 +112,6 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "invalid user ID")
-		return
-	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON format")
@@ -182,17 +173,13 @@ func DeleteReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDStr, err := utils.GetUserID()
+	userID, err := utils.GetUserID()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "missing user ID")
 		return
 	}
 
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid user ID")
-		return
-	}
+
 
 	vars := mux.Vars(r)
 	reviewIDStr := vars["reviewID"]

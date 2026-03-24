@@ -1,14 +1,15 @@
 package utils
 
-func GetAdminID() (string, error) {
+import "go.mongodb.org/mongo-driver/bson/primitive"
 
-	id := "45"
+func GetAdminID() (primitive.ObjectID, error) {
+
+	id := primitive.NewObjectID()
 	return id, nil
 }
 
+func GetUserID() (primitive.ObjectID, error) {
 
-func GetUserID() (string, error) {
-
-	id := "45"
+	id := primitive.NewObjectID()
 	return id, nil
 }

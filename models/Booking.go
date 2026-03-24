@@ -24,32 +24,14 @@ type FlightBooking struct {
 }
 
 type AccommodationBooking struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	UserID          primitive.ObjectID `bson:"userID" json:"userID"`
-	AccommodationID primitive.ObjectID `bson:"accommodationID" json:"accommodationID"`
-	UserDetails     []UserDetails      `bson:"userDetails" json:"userDetails"`
-	CheckIn         time.Time          `bson:"checkin" json:"checkin"`
-	Checkout        time.Time          `bson:"checkout" json:"checkout"`
-	Nights          int                `bson:"nights" json:"nights"`
-	//RoomType           string             `bson:"roomType" json:"roomType"`
-	AmountPaid         int64         `bson:"amountPaid" json:"amountPaid"`
-	Payment            Payment       `bson:"payment" json:"payment"`
-	CancellationDate   *time.Time    `bson:"cancellationDate" json:"cancellationDate"`
-	CancellationReason string        `bson:"cancellationReason" json:"cancellationReason"`
-	RefundStatus       RefundStatus  `bson:"refundStatus" json:"refundStatus"`
-	Status             BookingStatus `bson:"status" json:"status"`
-	CreatedAt          time.Time     `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time     `bson:"updateAt" json:"updateAt"`
-}
-
-type ActivityBooking struct {
 	ID                 primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	UserID             primitive.ObjectID `bson:"userID" json:"userID"`
-	ActivityID         primitive.ObjectID `bson:"activityID" json:"activityID"`
-	TimeSlotID         primitive.ObjectID `bson:"timeslotID" json:"timeslotID"`
+	AccommodationID    primitive.ObjectID `bson:"accommodationID" json:"accommodationID"`
 	UserDetails        []UserDetails      `bson:"userDetails" json:"userDetails"`
-	StartTime          time.Time          `bson:"startTime" json:"startTime"`
-	Participants       int                `bson:"participants" json:"participants"`
+	CheckIn            time.Time          `bson:"checkin" json:"checkin"`
+	Checkout           time.Time          `bson:"checkout" json:"checkout"`
+	Nights             int                `bson:"nights" json:"nights"`
+	RoomTypeID         primitive.ObjectID `bson:"roomTypeID" json:"roomTypeID"`
 	AmountPaid         int64              `bson:"amountPaid" json:"amountPaid"`
 	Payment            Payment            `bson:"payment" json:"payment"`
 	CancellationDate   *time.Time         `bson:"cancellationDate" json:"cancellationDate"`
@@ -58,6 +40,24 @@ type ActivityBooking struct {
 	Status             BookingStatus      `bson:"status" json:"status"`
 	CreatedAt          time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt          time.Time          `bson:"updateAt" json:"updateAt"`
+}
+
+type ActivityBooking struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID       primitive.ObjectID `bson:"userID" json:"userID"`
+	ActivityID   primitive.ObjectID `bson:"activityID" json:"activityID"`
+	TimeSlotID   primitive.ObjectID `bson:"timeslotID" json:"timeslotID"`
+	UserDetails  []UserDetails      `bson:"userDetails" json:"userDetails"`
+	Participants int                `bson:"participants" json:"participants"`
+	//StartTime          time.Time          `bson:"startTime" json:"startTime"`
+	AmountPaid         int64         `bson:"amountPaid" json:"amountPaid"`
+	Payment            Payment       `bson:"payment" json:"payment"`
+	CancellationDate   *time.Time    `bson:"cancellationDate" json:"cancellationDate"`
+	CancellationReason string        `bson:"cancellationReason" json:"cancellationReason"`
+	RefundStatus       RefundStatus  `bson:"refundStatus" json:"refundStatus"`
+	Status             BookingStatus `bson:"status" json:"status"`
+	CreatedAt          time.Time     `bson:"createdAt" json:"createdAt"`
+	UpdatedAt          time.Time     `bson:"updateAt" json:"updateAt"`
 }
 
 type BookedComponent struct {
@@ -70,7 +70,7 @@ type PackageBooking struct {
 	UserID             primitive.ObjectID `bson:"userID" json:"userID"`
 	PackageID          primitive.ObjectID `bson:"packageID" json:"packageID"`
 	UserDetails        []UserDetails      `bson:"userDetails" json:"userDetails"`
-	BookedComponents   BookedComponent    `bson:"bookedComponents" json:"bookedComponents"`
+	BookedComponents   []BookedComponent  `bson:"bookedComponents" json:"bookedComponents"`
 	AmountPaid         int64              `bson:"amountPaid" json:"amountPaid"`
 	Payment            Payment            `bson:"payment" json:"payment"`
 	CancellationDate   *time.Time         `bson:"cancellationDate" json:"cancellationDate"`
@@ -89,7 +89,7 @@ type Itinerary struct { //creating personal itinarary
 	StartDate            time.Time            `bson:"startDate" json:"startDate"`
 	EndDate              time.Time            `bson:"endDate" json:"endDate"`
 	Destination          []string             `bson:"destination" json:"destination"`
-	Status               BookingStatus               `bson:"status" json:"status"`
+	Status               BookingStatus        `bson:"status" json:"status"`
 	IsPublic             bool                 `bson:"isPublic" json:"isPublic"`
 	FlightBooking        []primitive.ObjectID `bson:"flightBooking" json:"flightBooking"`
 	AccommodationBooking []primitive.ObjectID `bson:"accommodationBooking" json:"accommodationBooking"`
@@ -105,6 +105,7 @@ type UserDetails struct {
 	UserID      primitive.ObjectID `bson:"userID" json:"userID"`
 	FirstName   string             `bson:"firstName" json:"firstName"`
 	LastName    string             `bson:"lastName" json:"lastName"`
+	DateOfBirth time.Time          `bson:"dateOfBirth" json:"dateOfBirth"`
 	UserPhone   string             `bson:"userPhone" json:"userPhone"`
 	Gender      string             `bson:"gender" json:"gender"`
 	Nationality string             `bson:"nationality" json:"nationality"`
@@ -112,11 +113,12 @@ type UserDetails struct {
 }
 
 type Payment struct {
-	PaymentMethod PaymentMethod `bson:"paymentMethod" json:"paymentMethod"`
-	TotalAmount   int64         `bson:"totalAmount" json:"totalAmount"`
-	Currency      string        `bson:"currency" json:"currency"`
-	Status        PaymentStatus `bson:"status" json:"status"`
-	PaidAt        *time.Time    `bson:"paidAt" json:"paidAt"`
+	PaymentMethod    PaymentMethod `bson:"paymentMethod" json:"paymentMethod"`
+	TotalAmount      int64         `bson:"totalAmount" json:"totalAmount"`
+	Currency         string        `bson:"currency" json:"currency"`
+	Status           PaymentStatus `bson:"status" json:"status"`
+	PaidAt           *time.Time    `bson:"paidAt" json:"paidAt"`
+	PaymentReference string        `bson:"paymentReference" json:"paymentReference"`
 }
 
 type DayPlan struct {
@@ -150,7 +152,7 @@ type BookingStatus string
 const (
 	BookingStatusCompleted BookingStatus = "completed"
 	BookingStatusPending   BookingStatus = "pending"
-	BookingStatusCancelled BookingStatus = "cancelled"
+	BookingStatusFailed    BookingStatus = "Failed"
 	BookingStatusConfirmed BookingStatus = "confirmed"
 )
 

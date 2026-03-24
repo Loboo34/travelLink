@@ -166,11 +166,11 @@ func (r *ActivityBookingRequest) Validate() error {
 }
 
 type PackageBookingRequest struct {
-	PackageID          primitive.ObjectID `json:"packageID"`
-	TravelersDetails   []UserDetails      `json:"travelersDetails"`
-	ComponentSelection string             `json:"componentSelection"`
-	PaymentMethod      PaymentMethod      `json:"paymentMethod"`
-	Currency           string             `json:"currency"`
+	PackageID          primitive.ObjectID   `json:"packageID"`
+	TravelersDetails   []UserDetails        `json:"travelersDetails"`
+	ComponentSelection []ComponentSelection `json:"componentSelection"`
+	PaymentMethod      PaymentMethod        `json:"paymentMethod"`
+	Currency           string               `json:"currency"`
 }
 
 type ComponentSelection struct {
@@ -182,4 +182,34 @@ type ComponentSelection struct {
 	Rooms         int                 `json:"rooms"`
 	Participants  int                 `json:"participants"`
 	TimeslotID    *primitive.ObjectID `json:"timeslotID"`
+}
+
+func (r *PackageBookingRequest) Validate() error {
+	if r.PackageID.IsZero() {
+		return errors.New("activityID is required")
+	}
+
+	if len(r.TravelersDetails) < 1 {
+		return errors.New("at least one passenger is required")
+	}
+	for i, p := range r.TravelersDetails {
+		if p.FirstName == "" {
+			return fmt.Errorf("passenger %d: firstName is required", i+1)
+		}
+		if p.LastName == "" {
+			return fmt.Errorf("passenger %d: lastName is required", i+1)
+		}
+	}
+
+	switch r.PaymentMethod {
+	case PaymentMethodCard, PaymentMethodMpesa, PaymentMethodBank:
+	default:
+		return errors.New("invalid payment method")
+	}
+
+	if r.Currency == "" {
+		r.Currency = "USD" // sensible default
+	}
+
+	return nil
 }
