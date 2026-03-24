@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	model "github.com/Loboo34/travel/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,15 +20,15 @@ func NewPackageBookingRepo(db *mongo.Database) *PackageBookingRepo {
 }
 
 func (r *PackageBookingRepo) ReserveSlot(ctx context.Context, packageID primitive.ObjectID, travelers int) error {
- err := r.db.Collection("package_availability").FindOneAndUpdate(ctx, bson.M{
-		"_id": packageID,
+	err := r.db.Collection("package_availability").FindOneAndUpdate(ctx, bson.M{
+		"_id":      packageID,
 		"isActive": true,
-		 "$expr": bson.M{
-                "$gte": []interface{}{
-                    bson.M{"$subtract": []interface{}{"$totalSlots", "$reservedSlots"}},
-                    travelers,
-                },
-            },
+		"$expr": bson.M{
+			"$gte": []interface{}{
+				bson.M{"$subtract": []interface{}{"$totalSlots", "$reservedSlots"}},
+				travelers,
+			},
+		},
 	},
 		bson.M{"$inc": bson.M{"reservedSlots": travelers}},
 	).Err()
@@ -39,34 +40,72 @@ func (r *PackageBookingRepo) ReserveSlot(ctx context.Context, packageID primitiv
 	return nil
 }
 
-func (r *PackageBookingRepo) ReleaseSlot(ctx context.Context, packageID primitive.ObjectID, travelers int) error{
+func (r *PackageBookingRepo) ReleaseSlot(ctx context.Context, packageID primitive.ObjectID, travelers int) error {
 	_, err := r.db.Collection("package_availability").UpdateOne(ctx, bson.M{
 		"packageID": packageID,
-	}, bson.M{"$inc": bson.M{"reservedSlots": -travelers}},)
-	if err != nil{
+	}, bson.M{"$inc": bson.M{"reservedSlots": -travelers}})
+	if err != nil {
 		return fmt.Errorf("releasing package: %w", err)
 	}
 
 	return nil
 }
 
+func (r *PackageBookingRepo) CreateBooking(
+	ctx context.Context,
+	booking *model.PackageBooking,
+) error {
+	_, err := r.db.Collection("package_bookings").InsertOne(ctx, booking)
+	if err != nil {
+		return fmt.Errorf("creating package booking: %w", err)
+	}
+	return nil
+}
+
+func (r *PackageBookingRepo) UpdateBookingStatus(
+	ctx context.Context,
+	bookingID primitive.ObjectID,
+	status model.BookingStatus,
+	payment *model.Payment,
+) error {
+	update := bson.M{
+		"$set": bson.M{
+			"status":    status,
+			"updatedAt": time.Now().UTC(),
+		},
+	}
+	if payment != nil {
+		update["$set"].(bson.M)["payment"] = payment
+		update["$set"].(bson.M)["amountPaid"] = payment.TotalAmount
+	}
+	_, err := r.db.Collection("package_bookings").UpdateOne(
+		ctx,
+		bson.M{"_id": bookingID},
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("updating package booking status: %w", err)
+	}
+	return nil
+}
+
 func (r *PackageBookingRepo) GetPackage(
-    ctx context.Context,
-    packageID primitive.ObjectID,
+	ctx context.Context,
+	packageID primitive.ObjectID,
 ) (*model.Package, error) {
-    var pkg model.Package
+	var pkg model.Package
 
-    err := r.db.Collection("packages").FindOne(ctx, bson.M{
-        "_id":      packageID,
-        "isActive": true,
-    }).Decode(&pkg)
+	err := r.db.Collection("packages").FindOne(ctx, bson.M{
+		"_id":      packageID,
+		"isActive": true,
+	}).Decode(&pkg)
 
-    if err == mongo.ErrNoDocuments {
-        return nil, nil
-    }
-    if err != nil {
-        return nil, fmt.Errorf("fetching package: %w", err)
-    }
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("fetching package: %w", err)
+	}
 
-    return &pkg, nil
+	return &pkg, nil
 }
