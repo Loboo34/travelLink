@@ -100,7 +100,7 @@ func (r *AccommodationBookingRepo) UpdateBooking(ctx context.Context, bookingID 
 
 	_, err := r.db.Collection("accommodation_booking").UpdateOne(ctx, bson.M{"_id": bookingID}, update)
 	if err != nil{
-		return fmt.Errorf("error updating booking status")
+		return fmt.Errorf("error updating booking status: %w", err)
 	}
 
 	return nil

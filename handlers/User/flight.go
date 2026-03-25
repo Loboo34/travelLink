@@ -47,7 +47,7 @@ func GetFlights(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched flights", flights)
+	utils.RespondWithJson(w, http.StatusOK,  flights)
 }
 
 func GetFlight(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func GetFlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Fetched flight")
-	utils.RespondWithJson(w, http.StatusOK, "Flight found", map[string]interface{}{"flight": flightID})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{"flight": flightID})
 
 }
 
@@ -114,7 +114,7 @@ func (h *FlightHandler) SearchFlight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "", result)
+	utils.RespondWithJson(w, http.StatusOK,  result)
 }
 
 func parseSearchParams(q url.Values) (model.FlightSearch, error) {

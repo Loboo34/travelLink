@@ -40,11 +40,11 @@ func (h *FlightBookingHandler) FLightBooking(w http.ResponseWriter, r *http.Requ
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error booking")
+		handleServiceError(w, err, "flight booking failed")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
 
 // book accommodation
@@ -78,11 +78,11 @@ func (h *AccommodationBookingHandler) AccommodationBooking(w http.ResponseWriter
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error booking accommodations")
+		handleServiceError(w, err, "accommodation booking failed")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated, result)
 }
 
 // book activities
@@ -116,11 +116,11 @@ func (h *ActivityBookingHandler) ActivityBooking(w http.ResponseWriter, r *http.
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error booking activity")
+		handleServiceError(w, err, "activity booking failed")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 
 }
 
@@ -155,11 +155,11 @@ func (h *PackageBookingHandler) PackageBooking(w http.ResponseWriter, r *http.Re
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error booking activity")
+	handleServiceError(w, err, "package booking failed")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 
 
 }
@@ -198,11 +198,11 @@ func (h *CancelFlightBooking) Cancel(w http.ResponseWriter, r *http.Request){
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+	handleServiceError(w, err, "flight cancellation failed")
 		return 
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
 
 type CancelAccommodationBookingHandler struct{
@@ -235,11 +235,11 @@ func (h *CancelAccommodationBookingHandler) Cancel(w http.ResponseWriter, r *htt
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+		handleServiceError(w, err, "accommodation cancellation failed")
 		return 
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
 
 type CancelActivityBooking struct{
@@ -272,11 +272,11 @@ func (h *CancelActivityBooking) Cancel(w http.ResponseWriter, r *http.Request){
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-		utils.RespondWithError(w, http.StatusInternalServerError, "error canceling booking")
+	handleServiceError(w, err, "activity cancelation failed")
 		return 
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Booking complete", result)
+	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
 //get ooking history
 //createitinerary

@@ -56,7 +56,7 @@ func CreateAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Created airline", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated, map[string]interface{}{})
 	utils.Logger.Info("Airline created")
 }
 
@@ -125,7 +125,7 @@ func UpdateAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Airline updated", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -177,7 +177,7 @@ func DeleteAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Airline Deleted", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -208,7 +208,7 @@ func GetAirlines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched airlines", airlines)
+	utils.RespondWithJson(w, http.StatusOK,  airlines)
 }
 
 func GetAirline(w http.ResponseWriter, r *http.Request) {
@@ -247,7 +247,7 @@ func GetAirline(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched airline", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }
 
 // airport
@@ -301,7 +301,7 @@ func CreateAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Created airport", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated, map[string]interface{}{})
 	utils.Logger.Info("Airport created")
 }
 
@@ -370,7 +370,7 @@ func UpdateAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Airport updated", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -422,7 +422,7 @@ func DeleteAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Airport Deleted", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -453,7 +453,7 @@ func GetAirports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched airports", airports)
+	utils.RespondWithJson(w, http.StatusOK, airports)
 }
 
 func GetAirport(w http.ResponseWriter, r *http.Request) {
@@ -492,7 +492,7 @@ func GetAirport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched airport", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }
 
 // routes
@@ -538,7 +538,7 @@ func CreateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Created route", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{})
 	utils.Logger.Info("Route created")
 }
 
@@ -607,7 +607,7 @@ func UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Route updated", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -659,7 +659,7 @@ func DeleteRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Route Deleted", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -690,7 +690,7 @@ func GetRoutes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched routes", routes)
+	utils.RespondWithJson(w, http.StatusOK,  routes)
 }
 
 func GetRoute(w http.ResponseWriter, r *http.Request) {
@@ -729,5 +729,5 @@ func GetRoute(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched route", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }

@@ -81,7 +81,7 @@ func (r *FlightBookingRepo) UpdateBooking(ctx context.Context, bookingID primiti
 
 	_, err := r.db.Collection("flight_booking").UpdateOne(ctx, bson.M{"bookingID": bookingID}, update)
 	if err != nil {
-		return fmt.Errorf("Error updating booking status")
+		return fmt.Errorf("Error updating booking status: %w", err)
 	}
 
 	return nil 
@@ -101,7 +101,7 @@ func (r *FlightBookingRepo) GetBooking(ctx context.Context, bookingID primitive.
 	return &booking, nil
 }
 
-func (r *FlightBookingRepo) CancelFlight(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
+func (r *FlightBookingRepo) Cancel(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
 
 	update := bson.M{
 		"$set": bson.M{

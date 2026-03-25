@@ -45,7 +45,7 @@ func GetPackages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched packages", packages)
+	utils.RespondWithJson(w, http.StatusOK,  packages)
 
 }
 
@@ -83,7 +83,7 @@ func GetPackage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Fetched package")
-	utils.RespondWithJson(w, http.StatusOK, "Package found", map[string]interface{}{"package": packageID})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{"package": packageID})
 
 }
 
@@ -115,7 +115,7 @@ func (h *PackageHandler) PackageSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Results:", results)
+	utils.RespondWithJson(w, http.StatusOK, results)
 }
 
 func parsePackageParams(q url.Values) (model.PackageSearchParams, error) {

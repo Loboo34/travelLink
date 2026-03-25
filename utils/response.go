@@ -6,17 +6,21 @@ import (
 )
 
 type ApiResponse struct {
-	Success bool        `json:"success"`
-	Error   string      `json:"error,omitempty"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Success bool      `json:"success"`
+	Error   *ApiError `json:"error,omitempty"`
+	Data    any       `json:"data,omitempty"`
 }
 
-func RespondWithJson(w http.ResponseWriter, code int, message string, payload interface{}) {
+type ApiError struct {
+	Code    int    `json:"coode"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func RespondWithJson(w http.ResponseWriter, code int,  payload any) {
 
 	response := ApiResponse{
 		Success: true,
-		Message: message,
 		Data:    payload,
 	}
 
@@ -29,7 +33,11 @@ func RespondWithError(w http.ResponseWriter, code int, message string) {
 
 	response := ApiResponse{
 		Success: false,
-		Error:   message,
+		Error:   &ApiError{
+			Code: code,
+			Status: http.StatusText(code),
+			Message: message,
+		},
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(code)

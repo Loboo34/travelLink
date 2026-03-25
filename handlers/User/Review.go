@@ -79,7 +79,7 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Review created")
-	utils.RespondWithJson(w, http.StatusCreated, "Review left", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated, map[string]interface{}{})
 }
 
 func UpdateReview(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +163,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Review updated", "")
+	utils.RespondWithJson(w, http.StatusOK, "Review updated")
 
 }
 
@@ -217,7 +217,7 @@ func DeleteReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Review Deleted", "")
+	utils.RespondWithJson(w, http.StatusOK, "Review Deleted")
 
 }
 
@@ -246,5 +246,5 @@ func GetReviews(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to decode reviews")
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched reviews", reviews)
+	utils.RespondWithJson(w, http.StatusOK,  reviews)
 }

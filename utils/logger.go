@@ -1,20 +1,27 @@
+// logger.go
 package utils
 
-import(
-	"log"
-	"go.uber.org/zap"
+import (
+    "log"
+    "go.uber.org/zap"
+    "go.uber.org/zap/zapcore"
 )
 
 var Logger *zap.Logger
 
-func InitLogger(){
-	var err error
+func InitLogger(production bool) {
+    var err error
 
-	Logger, err = zap.NewProduction()
-	if err != nil{
-		log.Fatalf("Failed to initialize logger with %v", err)
-		panic(err)
-	}
+    if production {
+        Logger, err = zap.NewProduction()
+    } else {
+        // development logger — human readable, colored output
+        config := zap.NewDevelopmentConfig()
+        config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+        Logger, err = config.Build()
+    }
 
-	defer Logger.Sync()
+    if err != nil {
+        log.Fatalf("failed to initialize logger: %v", err)
+    }
 }

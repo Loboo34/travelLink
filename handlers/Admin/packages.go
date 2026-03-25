@@ -80,7 +80,7 @@ func CreatePackage(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to create package")
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated, "Package created", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{})
 	utils.Logger.Info("Created package successfully")
 }
 
@@ -169,7 +169,7 @@ func UpadatePackage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Package Updated", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 	utils.Logger.Info("Updated package successfully")
 
 }
@@ -234,7 +234,7 @@ func Active(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Update successful")
-	utils.RespondWithJson(w, http.StatusOK, "Package status updated", map[string]interface{}{
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{
 		"isActive": req.IsActive,
 	})
 }
@@ -284,7 +284,7 @@ func DeletePackage(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Deleted package successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 	utils.Logger.Info("Package deleted")
 }
 

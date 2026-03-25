@@ -46,7 +46,7 @@ func GetAcommodations(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to decode accommodations")
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched accommodations", accommodations)
+	utils.RespondWithJson(w, http.StatusOK,  accommodations)
 }
 
 // get accommodationID
@@ -86,7 +86,7 @@ func GetAccommodation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched accommodation", accommodation)
+	utils.RespondWithJson(w, http.StatusOK,  accommodation)
 }
 
 // search accommodations
@@ -117,7 +117,7 @@ func (h *AccommodationHandler) AccommodationSearch(w http.ResponseWriter, r *htt
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Results:", results)
+	utils.RespondWithJson(w, http.StatusOK, results)
 
 }
 

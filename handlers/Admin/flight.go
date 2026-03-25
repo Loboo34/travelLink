@@ -75,7 +75,7 @@ func AddFlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Created Fligh successfully")
-	utils.RespondWithJson(w, http.StatusCreated, "Flight created successfully", map[string]interface{}{
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]any{
 		"flightID": flight.ID.Hex(),
 	})
 
@@ -150,7 +150,7 @@ func UpdateFight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Updated flight successfully")
-	utils.RespondWithJson(w, http.StatusOK, "Flight Updated", map[string]interface{}{"flight": update})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{"flight": update})
 
 }
 
@@ -215,7 +215,7 @@ func UpdateFlightStatus(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to update flight status")
 		return
 	}
-	utils.RespondWithJson(w, http.StatusOK, "Flight status updated", map[string]interface{}{"status": req.Status})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{"status": req.Status})
 	utils.Logger.Info("Status updated successfully")
 }
 
@@ -264,7 +264,7 @@ func DeleteFlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Delete successful")
-	utils.RespondWithJson(w, http.StatusOK, "Deleted flight successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -364,7 +364,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Successfully created offer")
-	utils.RespondWithJson(w, http.StatusCreated, "Created offer", map[string]interface{}{"flightID": flightID.Hex()})
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{"flightID": flightID.Hex()})
 
 }
 
@@ -452,7 +452,7 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Offer updated Successfully")
-	utils.RespondWithJson(w, http.StatusOK, "Update successful", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }
 
 // offer status
@@ -515,7 +515,7 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Update successful")
-	utils.RespondWithJson(w, http.StatusOK, "Offer status updated", map[string]interface{}{
+	utils.RespondWithJson(w, http.StatusOK,  map[string]any{
 		"isActive": req.IsActive,
 	})
 }
@@ -564,7 +564,7 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Offer deleted successfully")
-	utils.RespondWithJson(w, http.StatusOK, "Offer Deleed", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }
 
 //booking stats

@@ -146,9 +146,9 @@ func AddAccommodation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Successfully created Accommodation")
-	utils.RespondWithJson(w, http.StatusCreated, "Created acommodation", map[string]interface{
-		  //"id":      accommodation.ID,
-       // "message": "accommodation created successfully",
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{
+		//  "id":      accommodation.ID,
+      //  "message": "accommodation created successfully",
 	}{})
 
 }
@@ -225,7 +225,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Accommodation updated")
-	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -306,7 +306,7 @@ func Availability(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Accommodation updated")
-	utils.RespondWithJson(w, http.StatusOK, "accommodation updated successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -354,7 +354,7 @@ func DeleteAccommodation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Accommodation deleted successfully")
-	utils.RespondWithJson(w, http.StatusOK, "Accommodation deleted", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 }
 
 //booking stats

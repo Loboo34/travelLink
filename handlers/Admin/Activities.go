@@ -170,7 +170,7 @@ func CreateActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Created activity")
-	utils.RespondWithJson(w, http.StatusCreated, "Activity created successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{})
 }
 
 // Update activity
@@ -247,7 +247,7 @@ func UpdateActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Updated activity")
-	utils.RespondWithJson(w, http.StatusOK, "Activity updated successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -293,7 +293,7 @@ func DeleteActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Deleted activity")
-	utils.RespondWithJson(w, http.StatusOK, "Deleted activity successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 
@@ -375,7 +375,7 @@ func TimeSlot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Time slot created")
-	utils.RespondWithJson(w, http.StatusOK, "Time slot created successfully", map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
 
 }
 

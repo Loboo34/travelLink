@@ -46,7 +46,7 @@ func GetActivities(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to decode activities")
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched activities", activities)
+	utils.RespondWithJson(w, http.StatusOK,  activities)
 }
 
 func GetActivity(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +85,7 @@ func GetActivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Fetched activity", activity)
+	utils.RespondWithJson(w, http.StatusOK,  activity)
 }
 
 // search activity
@@ -116,7 +116,7 @@ func (h *ActivityHandler) ActivitySearch(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK, "Results:", result)
+	utils.RespondWithJson(w, http.StatusOK,  result)
 }
 
 func ParceAivityParams(q url.Values) (model.ActivitySearch, error) {

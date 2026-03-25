@@ -10,6 +10,7 @@ import (
 	"github.com/Loboo34/travel/repository"
 	"github.com/Loboo34/travel/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.uber.org/zap"
 )
 
 type ActivityBookingService struct {
@@ -37,7 +38,7 @@ type ActivityBookingResult struct {
 
 func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.ObjectID, req model.ActivityBookingRequest) (*ActivityBookingResult, error) {
 	if err := req.Validate(); err != nil {
-		return nil, fmt.Errorf("validation error")
+		return nil, &model.ValidationError{Message: err.Error()}
 	}
 
 	slot, err := s.bookingRepo.CheckAndReserv(ctx, req.ActivityID, req.TimeSlotID, req.Participants)
@@ -71,6 +72,7 @@ func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.Obje
 
 	if err := s.bookingRepo.CreateBooking(ctx, booking); err != nil {
 		if releaseErr := s.bookingRepo.ReleaseReservation(ctx,  req.TimeSlotID, req.Participants); releaseErr != nil {
+			utils.Logger.Error("failed to release reservation after booking faliure", zap.String("activityID", booking.ActivityID.Hex()), zap.Error(releaseErr))
 			return nil, fmt.Errorf("error releasing reservation after booking failiure")
 		}
 
@@ -89,15 +91,16 @@ func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.Obje
 		},
 	})
 	if err != nil {
-		utils.Logger.Warn("payment failed")
+			utils.Logger.Warn("payment failed", zap.String("bookingID", bookingID.Hex()),
+			zap.Error(err))
 
 		if releaseErr := s.bookingRepo.ReleaseReservation(ctx,  req.TimeSlotID, req.Participants); releaseErr != nil {
-			utils.Logger.Error("failed to release reservation after payment failure")
+			utils.Logger.Error("failed to release reservation after payment failure", zap.String("bookingID", bookingID.Hex()), zap.Error(releaseErr))
 		}
 
 		_ = s.bookingRepo.UpdateBooking(ctx, bookingID, model.BookingStatusFailed, nil)
 
-		return nil, fmt.Errorf("payment failed")
+		return nil, &model.PaymentError{Message: "payment processig failed"}
 	}
 
 	confirmPayment := &model.Payment{
@@ -110,7 +113,9 @@ func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.Obje
 	}
 
 	if err := s.bookingRepo.UpdateBooking(ctx, bookingID, model.BookingStatusConfirmed, confirmPayment); err != nil {
-		utils.Logger.Error("payment confired but failed to confirm booking")
+		utils.Logger.Error("payment succeeded but booking confirmation failed", zap.String("bookingID", bookingID.Hex()),
+			zap.Error(err))
+
 		return nil, fmt.Errorf("confirming booking: %w", err)
 	}
 
@@ -126,7 +131,7 @@ func (s *ActivityBookingService) Book(ctx context.Context, userID primitive.Obje
 
 func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.ObjectID, req model.Cancellation) (*CancellationResult, error) {
 	if err := req.Validate(); err != nil {
-		return nil, fmt.Errorf("validation error")
+		return nil, &model.ValidationError{Message: err.Error()}
 	}
 
 	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
@@ -135,11 +140,11 @@ func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.Ob
 	}
 
 	if booking.UserID != userID {
-	return  nil, fmt.Errorf("")
+	return  nil, &model.AuthError{Message: "unauthorized to cancel booking"}
 	}
 
 	if booking.Status != model.BookingStatusConfirmed{
-		return nil, fmt.Errorf("")
+		return nil, &model.ConflictError{Message: fmt.Sprintf("cannot cancel booking with status %q", booking.Status)}
 	}
 
 	if err := s.bookingRepo.CancelFlight(ctx, req.BookingID, req.Reason); err != nil {
@@ -147,7 +152,7 @@ func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.Ob
 	}
 
 	if releaseErr := s.bookingRepo.ReleaseReservation(ctx, booking.TimeSlotID, booking.Participants); releaseErr != nil {
-		utils.Logger.Error("")
+		utils.Logger.Error("failed to release seats", zap.String("bookingID", req.BookingID.Hex()), zap.String("activity", booking.ActivityID.Hex()), zap.Error(releaseErr))
 	}
 
 	//payment
