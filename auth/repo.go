@@ -32,7 +32,7 @@ func (r *UserRepo) FindByEmail(ctx context.Context, email string) (*model.User, 
 	err := r.db.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("user with email %s not found", email)
+			return nil, nil
 		}
 		return nil, fmt.Errorf("database error finding user: %w", err)
 	}
@@ -47,4 +47,18 @@ func (r *UserRepo) DeleteUser(ctx context.Context, userID primitive.ObjectID) er
 	}
 
 	return nil
+}
+
+func (r *UserRepo) GetUser(ctx context.Context, userID primitive.ObjectID) (*model.User, error){
+	var user model.User
+
+	err := r.db.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil{
+		if errors.Is(err, mongo.ErrNoDocuments){
+			return nil, fmt.Errorf("usr not found: %w", err)
+		}
+		return nil, fmt.Errorf("database err: %w", err)
+	}
+
+	return &user, nil
 }

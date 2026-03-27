@@ -6,7 +6,9 @@ import (
 	"time"
 
 	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,8 +17,8 @@ type UserService struct {
 	jwt      *JWTManager
 }
 
-func NewUserService(userRepo *UserRepo) *UserService {
-	return &UserService{userRepo: userRepo}
+func NewUserService(userRepo *UserRepo, jwt *JWTManager) *UserService {
+	return &UserService{userRepo: userRepo, jwt: jwt}
 }
 
 type RegisterRequest struct {
@@ -36,18 +38,18 @@ type AuthResult struct {
 	User  model.User `json:"user"`
 }
 
-func (s *UserService) Resgister(ctx context.Context, req RegisterRequest) (*AuthResult, error) {
+func (s *UserService) Register(ctx context.Context, req RegisterRequest) (*AuthResult, error) {
 	if req.Email == "" {
 		return nil, &model.ValidationError{Message: "email is required"}
 	}
 
 	if len(req.Password) < 8 {
-		return nil, &model.ValidationError{Message: "password must be at least 8 charachters"}
+		return nil, &model.ValidationError{Message: "password must be at least 8 characters"}
 	}
 
 	existing, err := s.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, fmt.Errorf("error fnding email %w", err)
+		return nil, fmt.Errorf("checking email: %w", err)
 	}
 
 	if existing != nil {
@@ -75,7 +77,9 @@ func (s *UserService) Resgister(ctx context.Context, req RegisterRequest) (*Auth
 	}
 
 	if err := s.userRepo.CreateUser(ctx, user); err != nil {
+		utils.Logger.Error("failed to create user", zap.Error(err))
 		return nil, fmt.Errorf("creating user: %w", err)
+
 	}
 
 	token, err := s.jwt.Generate(userID, user.Role, req.Email)
@@ -99,29 +103,40 @@ func (s *UserService) Login(ctx context.Context, req LoginRequest) (*AuthResult,
 	}
 
 	user, err := s.userRepo.FindByEmail(ctx, req.Email)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("finding user: %w", err)
 	}
 
-	if user == nil{
+	if user == nil {
 		return nil, &model.AuthError{Message: "invalid email or password"}
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil{
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return nil, &model.AuthError{Message: "invalid email or password"}
 	}
 
-	if !user.IsActive{
+	if !user.IsActive {
 		return nil, &model.AuthError{Message: "account is inactive"}
 	}
 
 	token, err := s.jwt.Generate(user.ID, user.Role, user.Email)
-	if err != nil{
-		return nil, fmt.Errorf("generating tiken: %w", err )
+	if err != nil {
+		return nil, fmt.Errorf("generating tiken: %w", err)
 	}
 
 	return &AuthResult{
 		Token: token,
-		User: *user,
+		User:  *user,
 	}, nil
+}
+
+func (s *UserService) GetProfile(ctx context.Context, userID primitive.ObjectID) (*model.User, error) {
+
+	_, err := s.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error finding user: %w", err)
+	}
+
+	return &model.User{}, nil
+
 }
