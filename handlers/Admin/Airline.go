@@ -1,4 +1,4 @@
-package handlers
+package handlers_admin
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func CreateAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -66,7 +66,7 @@ func UpdateAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -135,7 +135,7 @@ func DeleteAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -257,7 +257,7 @@ func CreateAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -311,7 +311,7 @@ func UpdateAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -380,7 +380,7 @@ func DeleteAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -502,7 +502,7 @@ func CreateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -548,7 +548,7 @@ func UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -617,7 +617,7 @@ func DeleteRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return

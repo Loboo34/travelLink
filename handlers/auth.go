@@ -32,7 +32,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.userService.Register(r.Context(), req)
 	if err != nil {
-		handleServiceError(w, err, "failed registering user")
+		HandleServiceError(w, err, "failed registering user")
 		return
 	}
 
@@ -55,7 +55,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.userService.Login(r.Context(), req)
 	if err != nil {
-		handleServiceError(w, err, "failed to login")
+		HandleServiceError(w, err, "failed to login")
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request){
 
 	result, err := h.userService.GetProfile(r.Context(), userID)
 	if err != nil{
-		handleServiceError(w, err, "failed to get profile")
+		HandleServiceError(w, err, "failed to get profile")
 		return 
 	}
 
