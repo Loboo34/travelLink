@@ -138,10 +138,10 @@ type Offer struct {
 	FlightID          primitive.ObjectID     `json:"flightID"`
 	ProviderReference string                 `json:"providerReference"`
 	Provider          string                 `json:"provider"`
-	OneWay            bool                   `json:"oneWay"`
+	OneWay            bool                   `json:"oneway"`
 	Segments          []primitive.ObjectID   `json:"segments"`
 	PriceTotal        int64                  `json:"priceTotal"`
-	BaggageAllowance  model.BaggageAllowance `json:"baggageAllowance"`
+	BaggageAllowance  []model.BaggageAllowance `json:"baggageAllowance"`
 	LastTicketingDate *time.Time             `json:"lastTicketingDate"`
 	BookableSeats     int                    `json:"bookableSeats"`
 	ExpiresAt         *time.Time             `json:"expiresAt"`
@@ -161,7 +161,7 @@ func (s *FlightService) CreateOffer(ctx context.Context, req Offer) (*model.Flig
 		Segments:          req.Segments,
 		PriceTotal:        req.PriceTotal,
 		BaggageAllowance:  req.BaggageAllowance,
-		LastTicketingDate: &now,
+		LastTicketingDate: req.LastTicketingDate,
 		BookableSeats:     req.BookableSeats,
 		CachedAt:          now,
 		ExpiresAt:         req.ExpiresAt,
@@ -179,13 +179,13 @@ func (s *FlightService) CreateOffer(ctx context.Context, req Offer) (*model.Flig
 }
 
 type OfferUpdate struct {
-	Price         int64 `json:"price"`
+	Price         int64 `json:"priceTotal"`
 	OneWay        bool  `json:"oneway"`
 	BookableSeats int   `json:"bookableSeats"`
 }
 
 func (s *FlightService) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, req OfferUpdate) (*model.FlightOffer, error) {
-	if err := s.FlightRepo.UpdateOffer(ctx, offerID, req.BookableSeats, int(req.Price), req.OneWay); err != nil {
+	if err := s.FlightRepo.UpdateOffer(ctx, offerID,  req.Price, req.BookableSeats, req.OneWay); err != nil {
 		return nil, fmt.Errorf("updating offer: %w", err)
 	}
 

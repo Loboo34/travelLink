@@ -104,7 +104,12 @@ func (r *FlightRepo) CreateOffer(ctx context.Context, offer *model.FlightOffer) 
 	return nil
 }
 
-func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, price, seats int, oneWay bool) error {
+func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, price int64, seats int, oneWay bool) error {
+	var offer model.FlightOffer
+
+	if err := r.db.Collection("flight_offers").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
+		return mongo.ErrNoDocuments
+	}
 
 	update := bson.M{
 		"$set": bson.M{
@@ -113,22 +118,24 @@ func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID
 			"bookableSeats":     seats,
 			"lastTicketingDate": time.Now(),
 			"expiresAt":         time.Now(),
+			"updatedAt": time.Now(),
 		},
 	}
 
-	result, err := r.db.Collection("flight_offers").UpdateOne(ctx, bson.M{"_id": offerID}, update)
+	_, err := r.db.Collection("flight_offers").UpdateOne(ctx, bson.M{"_id": offerID}, update)
 	if err != nil {
 		return fmt.Errorf("updting offer")
-	}
-
-	if result.MatchedCount == 0 {
-		return fmt.Errorf("flight offer not found: %s", offerID.Hex())
 	}
 
 	return nil
 }
 
 func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, isActive bool) error {
+		var offer model.FlightOffer
+
+	if err := r.db.Collection("flight_offers").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
+		return mongo.ErrNoDocuments
+	}
 	update := bson.M{
 		"$set": bson.M{
 			"isActive":  isActive,
@@ -136,7 +143,7 @@ func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, i
 		},
 	}
 
-	result, err := r.db.Collection("flight_offers").UpdateOne(
+	_, err := r.db.Collection("flight_offers").UpdateOne(
 		ctx,
 		bson.M{"_id": offerID},
 		update,
@@ -145,13 +152,13 @@ func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, i
 		return fmt.Errorf("database error updating offer status: %w", err)
 	}
 
-	if result.MatchedCount == 0 {
-		return fmt.Errorf("flight offer not found: %s", offerID.Hex())
-	}
+	// if result.MatchedCount == 0 {
+	// 	return fmt.Errorf("flight offer not found: %s", offerID.Hex())
+	// }
 
-	if result.ModifiedCount == 0 && isActive {
+	// if result.ModifiedCount == 0 && isActive {
 
-	}
+	// }
 
 	return nil
 }

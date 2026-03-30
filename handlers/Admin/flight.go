@@ -3,7 +3,6 @@ package handlers_admin
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/Loboo34/travel/handlers"
 	model "github.com/Loboo34/travel/models"
@@ -194,18 +193,7 @@ func (h *FlightHandler) FlightOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		FlightID          primitive.ObjectID     `json:"flightID"`
-		ProviderReference string                 `json:"providerReference"`
-		Provider          string                 `json:"provider"`
-		OneWay            bool                   `json:"oneWay"`
-		Segments          []primitive.ObjectID   `json:"segments"`
-		PriceTotal        int64                  `json:"priceTotal"`
-		BaggageAllowance  model.BaggageAllowance `json:"baggageAllowance"`
-		LastTicketingDate *time.Time             `json:"lastTicketingDate"`
-		BookableSeats     int                    `json:"bookableSeats"`
-		ExpiresAt         *time.Time             `json:"expiresAt"`
-	}
+	var req service.Offer
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
@@ -215,7 +203,7 @@ func (h *FlightHandler) FlightOffer(w http.ResponseWriter, r *http.Request) {
 	resilt, err := h.flightService.CreateOffer(r.Context(), req)
 	if err != nil {
 		utils.Logger.Warn("Failed to create offer")
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating offer")
+		handlers.HandleServiceError(w, err, "failed to create offer")
 		return
 	}
 
@@ -226,8 +214,8 @@ func (h *FlightHandler) FlightOffer(w http.ResponseWriter, r *http.Request) {
 
 // update offer
 func (h *FlightHandler) UpdateOffer(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPatch {
-		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
+	if r.Method != http.MethodPut {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PUT allowed")
 		return
 	}
 
@@ -238,9 +226,9 @@ func (h *FlightHandler) UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	offerIDStr := vars["flightOfferID"]
+	offerIDStr := vars["offerID"]
 	if offerIDStr == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing flight ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing offer ID")
 		return
 	}
 
@@ -250,11 +238,7 @@ func (h *FlightHandler) UpdateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		Price             int64   `json:"price"`
-		OneWay            bool      `json:"oneway"`
-		BookableSeats     int       `json:"bookableSeats"`
-	}
+	var req service.OfferUpdate
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
@@ -264,7 +248,8 @@ func (h *FlightHandler) UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	result, err := h.flightService.UpdateOffer(r.Context(), offerID, req)
 	if err != nil {
 		utils.Logger.Warn("Failed to update offer")
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer")
+		// utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer")
+		handlers.HandleServiceError(w, err, "failed to update offer")
 		return
 	}
 
@@ -308,7 +293,8 @@ func (h *FlightHandler) IsActive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.flightService.IsActive(r.Context(), offerID, req.IsActive); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer status")
+		// utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer status")
+		handlers.HandleServiceError(w, err, "failed to change offer status")
 		utils.Logger.Warn("Failed to update offer status")
 		return
 	}
@@ -333,7 +319,7 @@ func (h *FlightHandler) DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	offerIDStr := vars["flightID"]
+	offerIDStr := vars["offerID"]
 	if offerIDStr == "" {
 		utils.RespondWithError(w, http.StatusNotFound, "Missing flight ID")
 		return
@@ -347,7 +333,8 @@ func (h *FlightHandler) DeleteOffer(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.flightService.DeleteOffer(r.Context(), offerID); err != nil {
 		utils.Logger.Warn("Failed to delete offer")
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting offer")
+		// utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting offer")
+		handlers.HandleServiceError(w, err, "failed to delete offer")
 		return
 	}
 
