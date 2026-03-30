@@ -102,10 +102,10 @@ func main() {
 	r.Handle("/flight/delete/{flightID}", admin(http.HandlerFunc(flightHandler.DeleteFlight)))
 
 	//offers
-	r.HandleFunc("/offer/create", flightHandler.FlightOffer)
-	r.HandleFunc("/offer/update", flightHandler.UpdateOffer)
-	r.HandleFunc("/offer/isactive", flightHandler.IsActive)
-	r.HandleFunc("/offer/delete", flightHandler.DeleteOffer)
+	r.Handle("/offer/create", admin(http.HandlerFunc(flightHandler.FlightOffer)))
+	r.Handle("/offer/update/{offerID}", admin(http.HandlerFunc(flightHandler.UpdateOffer)))
+	r.Handle("/offer/isactive/{offerID}", admin(http.HandlerFunc(flightHandler.IsActive)))
+	r.Handle("/offer/delete/{offerID}", admin(http.HandlerFunc(flightHandler.DeleteOffer)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

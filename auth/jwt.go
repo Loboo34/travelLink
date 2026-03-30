@@ -13,9 +13,9 @@ var ErrInvalidToken = errors.New("invalid token")
 var ErrExpiredToken = errors.New("token has expired")
 
 type Claims struct {
-	UserID string
-	Role   model.UserRole
-	Email  string
+	UserID string         
+	Role   model.UserRole `json:"role"`
+	Email  string         `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -51,7 +51,6 @@ func (j *JWTManager) Verify(tokenStr string) (*Claims, error) {
 		tokenStr,
 		&Claims{},
 		func(token *jwt.Token) (interface{}, error) {
-			// verify signing method hasn't been swapped
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, ErrInvalidToken
 			}

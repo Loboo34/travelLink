@@ -11,8 +11,8 @@ import (
 type contextKey string
 
 const (
-	contextKeyUserID contextKey = "userID"
-	contextKeyRole   contextKey = "role"
+	ContextKeyUserID contextKey = "userID"
+	ContextKeyRole   contextKey = "role"
 )
 
 func GetAdminID(ctx context.Context) (primitive.ObjectID, error) {
@@ -20,13 +20,14 @@ func GetAdminID(ctx context.Context) (primitive.ObjectID, error) {
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
+
 	if role != model.UserRoleAdmin {
 		return primitive.NilObjectID, errors.New("admin access required")
 	}
 	return GetUserID(ctx)
 }
 func GetRoleFromContext(ctx context.Context) (model.UserRole, error) {
-	val, ok := ctx.Value(contextKeyRole).(model.UserRole)
+	val, ok := ctx.Value(ContextKeyRole).(model.UserRole)
 	if !ok {
 		return "", errors.New("role not found in context")
 	}
@@ -35,7 +36,7 @@ func GetRoleFromContext(ctx context.Context) (model.UserRole, error) {
 
 func GetUserID(ctx context.Context) (primitive.ObjectID, error) {
 
-	val, ok := ctx.Value(contextKeyUserID).(string)
+	val, ok := ctx.Value(ContextKeyUserID).(string)
 	if !ok || val == "" {
 		return primitive.NilObjectID, errors.New("userID not found in context")
 	}
