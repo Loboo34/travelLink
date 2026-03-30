@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,16 +20,44 @@ func NewFlightService(flightRepo *repository.FlightRepo) *FlightService {
 }
 
 type FlightRequest struct {
-	OriginID      primitive.ObjectID       `json:"originID"`
-	DestinationID primitive.ObjectID       `json:"destinationID"`
-	DepartureTime time.Time                `json:"departureTime"`
-	ArrivalTime   time.Time                `json:"arrivalTime"`
-	AirlineID     primitive.ObjectID       `json:"airline"`
-	FlightNumber  string                   `json:"flightNumber"`
-	CabinClass    []model.FlightCabinClass `json:"cabinClass"`
-	Segments      []primitive.ObjectID     `json:"segments"`
-	PlaneID       primitive.ObjectID       `json:"planeType"`
-	Status        string                   `json:"status"`
+	OriginID      primitive.ObjectID       `bson:"originID" json:"originID"`
+	DestinationID primitive.ObjectID       `bson:"destinationID" json:"destinationID"`
+	DepartureTime time.Time                `bson:"departureTime" json:"departureTime"`
+	ArrivalTime   time.Time                `bson:"arrivalTime" json:"arrivalTime"`
+	AirlineID     primitive.ObjectID       `bson:"airlineID" json:"airlineID"`
+	FlightNumber  string                   `bson:"flightNumber" json:"flightNumber"`
+	CabinClass    []model.FlightCabinClass `bson:"cabinClass" json:"cabinClass"`
+	Segments      []primitive.ObjectID     `bson:"segments" json:"segments"`
+	PlaneID       primitive.ObjectID       `bson:"palneID" json:"planeID"`
+	//Status        string                   `json:"status"`
+}
+
+func (r *FlightRequest) Validate() error {
+	if r.OriginID.IsZero() {
+		return errors.New("origin ID required")
+	}
+
+	if r.DestinationID.IsZero() {
+		return fmt.Errorf("destination ID required")
+	}
+
+	if r.PlaneID.IsZero() {
+		return fmt.Errorf("plane ID required")
+	}
+
+	if len(r.Segments) == 0 {
+		return fmt.Errorf("segment ID required")
+	}
+
+	if r.AirlineID.IsZero() {
+		return fmt.Errorf("destination ID required")
+	}
+
+	if r.FlightNumber == "" {
+		return fmt.Errorf("number is required")
+	}
+
+	return nil
 }
 
 type FlightResult struct {
@@ -42,6 +71,9 @@ type FlightResult struct {
 }
 
 func (s *FlightService) AddFlight(ctx context.Context, req FlightRequest) (*model.Flight, error) {
+	if err := req.Validate(); err != nil {
+		return nil, &model.ValidationError{Message: err.Error()}
+	}
 
 	flightID := primitive.NewObjectID()
 	now := time.Now()
@@ -72,9 +104,9 @@ func (s *FlightService) AddFlight(ctx context.Context, req FlightRequest) (*mode
 }
 
 type UpdateReq struct {
-	DepartureTime time.Time          `json:"departureTime"`
-	ArrivalTime   time.Time          `json:"arrivalTime"`
-	Stops         int                `json:"stops"`
+	DepartureTime time.Time `json:"departureTime"`
+	ArrivalTime   time.Time `json:"arrivalTime"`
+	Stops         int       `json:"stops"`
 }
 
 func (s *FlightService) Update(ctx context.Context, flightID primitive.ObjectID, req UpdateReq) (*UpdateReq, error) {
@@ -147,12 +179,12 @@ func (s *FlightService) CreateOffer(ctx context.Context, req Offer) (*model.Flig
 }
 
 type OfferUpdate struct {
-		Price             int64   `json:"price"`
-		OneWay            bool      `json:"oneway"`
-		BookableSeats     int       `json:"bookableSeats"`
-	}
+	Price         int64 `json:"price"`
+	OneWay        bool  `json:"oneway"`
+	BookableSeats int   `json:"bookableSeats"`
+}
 
-func (s *FlightService) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, req OfferUpdate ) (*model.FlightOffer, error) {
+func (s *FlightService) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, req OfferUpdate) (*model.FlightOffer, error) {
 	if err := s.FlightRepo.UpdateOffer(ctx, offerID, req.BookableSeats, int(req.Price), req.OneWay); err != nil {
 		return nil, fmt.Errorf("updating offer: %w", err)
 	}

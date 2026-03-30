@@ -1,94 +1,69 @@
-package handlers
+package handlers_admin
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/Loboo34/travel/database"
+	"github.com/Loboo34/travel/handlers"
 	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
+type FlightHandler struct {
+	flightService *service.FlightService
+}
+
+func NewFlightHandler(flightService *service.FlightService) *FlightHandler {
+	return &FlightHandler{flightService: flightService}
+}
+
 // add flight
-func AddFlight(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) AddFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only POST allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	adminID, err := utils.GetAdminID(r.Context())
 	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
+		utils.Logger.Error("Failed to get admin ID", zap.Error(err))
+		utils.RespondWithError(w, http.StatusUnauthorized, "Missing admin ID")
 		return
 	}
 
-	var req struct {
-		OriginID      primitive.ObjectID       `json:"originID"`
-		DestinationID primitive.ObjectID       `json:"destinationID"`
-		DepartureTime time.Time                `json:"departureTime"`
-		ArrivalTime   time.Time                `json:"arrivalTime"`
-		AirlineID     primitive.ObjectID       `json:"airline"`
-		FlightNumber  string                   `json:"flightNumber"`
-		CabinClass    []model.FlightCabinClass `json:"cabinClass"`
-		Segments      []primitive.ObjectID     `json:"segments"`
-		PlaneID       primitive.ObjectID       `json:"planeType"`
-		Status        string                   `json:"status"`
-	}
+	utils.Logger.Info("Admin creating flight", zap.String("adminID", adminID.Hex()))
+
+	var req service.FlightRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Json")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	flightCollection := database.DB.Collection("flights")
-
-	flight := model.Flight{
-		ID:            primitive.NewObjectID(),
-		OriginID:      req.OriginID,
-		DestinationID: req.DestinationID,
-		DepartureTime: req.DepartureTime,
-		ArrivalTime:   req.ArrivalTime,
-		AirlineID:     req.AirlineID,
-		FlightNumber:  req.FlightNumber,
-		CabinClass:    req.CabinClass,
-		Segments:      req.Segments,
-		Stops:         len(req.Segments) - 1,
-		PlaneID:       req.PlaneID,
-		Status:        "Scheduled",
-		CreatedAt:     time.Now(),
-	}
-
-	_, err = flightCollection.InsertOne(ctx, flight)
+	result, err := h.flightService.AddFlight(r.Context(), req)
 	if err != nil {
-		utils.Logger.Warn("Failed to create flight")
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating flight")
+		utils.RespondWithError(w, http.StatusInternalServerError, "error creating flight")
 		return
 	}
 
 	utils.Logger.Info("Created Fligh successfully")
-	utils.RespondWithJson(w, http.StatusCreated,  map[string]any{
-		"flightID": flight.ID.Hex(),
-	})
+	utils.RespondWithJson(w, http.StatusCreated, result)
 
 }
 
 // update flight
-func UpdateFight(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) UpdateFight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PUT Allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -107,61 +82,33 @@ func UpdateFight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		DepartureTime time.Time `json:"departureTime"`
-		ArrivalTime   time.Time `json:"arrivalTime"`
-		Stops         string    `json:"stops"`
-	}
-
+	var req service.UpdateReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	flightCollection := database.DB.Collection("flights")
-	var flight model.Flight
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
-		} else {
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
-		}
-		return
-	}
-
-	update := bson.M{
-		"$set": bson.M{
-			"departureTime": req.DepartureTime,
-			"arrivalTime":   req.ArrivalTime,
-			"stops":         req.Stops,
-			"updatedAt":     time.Now(),
-		},
-	}
-	_, err = flightCollection.UpdateOne(ctx, bson.M{"_id": flightID}, update)
+	result, err := h.flightService.Update(r.Context(), flightID, req)
 	if err != nil {
 		utils.Logger.Warn("Error while updating flight")
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update flight")
+		// utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update flight")
+		handlers.HandleServiceError(w, err, "error updating flight")
 		return
 	}
 
 	utils.Logger.Info("Updated flight successfully")
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{"flight": update})
+	utils.RespondWithJson(w, http.StatusOK, result)
 
 }
 
 // flight status
-func UpdateFlightStatus(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) UpdateFlightStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing andmin ID")
 		return
@@ -187,46 +134,24 @@ func UpdateFlightStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flightCollection := database.DB.Collection("flights")
-	var flight model.Flight
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
-		} else {
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
-		}
-		return
-	}
-
-	update := bson.M{
-		"$set": bson.M{
-			"status": req.Status,
-		},
-	}
-
-	_, err = flightCollection.UpdateOne(ctx, bson.M{"_id": flightID}, update)
+	err = h.flightService.UpdateStatus(r.Context(), flightID, &req.Status)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating flight status")
 		utils.Logger.Warn("Failed to update flight status")
 		return
 	}
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{"status": req.Status})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{"status": req.Status})
 	utils.Logger.Info("Status updated successfully")
 }
 
-// dlete flight
-func DeleteFlight(w http.ResponseWriter, r *http.Request) {
+// delete flight
+func (h *FlightHandler) DeleteFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Delete allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin iD")
 		return
@@ -245,53 +170,41 @@ func DeleteFlight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flightCollection := database.DB.Collection("flights")
-	//var flight model.Flight
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-
-	result, err := flightCollection.DeleteOne(ctx, bson.M{"_id": flightID})
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete flight")
-		return
-	}
-
-	if result.DeletedCount == 0 {
-		utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
+	if err := h.flightService.DeleteFlight(r.Context(), flightID); err != nil {
+		// utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete flight")
+		handlers.HandleServiceError(w, err, "failed to delete flight")
 		return
 	}
 
 	utils.Logger.Info("Delete successful")
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
 // flight offer
-func FlightOffer(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) FlightOffer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Ony POST allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
 	}
 
 	var req struct {
-		FlightID          string                 `json:"flightID"`
+		FlightID          primitive.ObjectID     `json:"flightID"`
 		ProviderReference string                 `json:"providerReference"`
 		Provider          string                 `json:"provider"`
 		OneWay            bool                   `json:"oneWay"`
 		Segments          []primitive.ObjectID   `json:"segments"`
 		PriceTotal        int64                  `json:"priceTotal"`
 		BaggageAllowance  model.BaggageAllowance `json:"baggageAllowance"`
-		LastTicketingDate time.Time              `json:"lastTicketingDate"`
+		LastTicketingDate *time.Time             `json:"lastTicketingDate"`
 		BookableSeats     int                    `json:"bookableSeats"`
-		ExpiresAt         time.Time              `json:"expiresAt"`
+		ExpiresAt         *time.Time             `json:"expiresAt"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -299,64 +212,7 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offersCollection := database.DB.Collection("flight_offers")
-	//var offer model.FlightOffer
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if req.FlightID == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing flight ID")
-		return
-	}
-
-	flightID, err := primitive.ObjectIDFromHex(req.FlightID)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
-		return
-	}
-
-	flightCollection := database.DB.Collection("flights")
-	var flight model.Flight
-
-	err = flightCollection.FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			utils.RespondWithError(w, http.StatusNotFound, "Flight not found")
-		} else {
-			utils.Logger.Warn("Failed to find flight")
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
-		}
-		return
-	}
-
-	var lastTicketingDate *time.Time
-	if !req.LastTicketingDate.IsZero() {
-		lastTicketingDate = &req.LastTicketingDate
-	}
-
-	var expiresAt *time.Time
-	if !req.ExpiresAt.IsZero() {
-		expiresAt = &req.ExpiresAt
-	}
-
-	create := model.FlightOffer{
-		ID:                primitive.NewObjectID(),
-		FlightID:          flightID,
-		ProviderReference: req.ProviderReference,
-		Provider:          req.Provider,
-		OneWay:            req.OneWay,
-		Segments:          req.Segments,
-		PriceTotal:        req.PriceTotal,
-		BaggageAllowance:  req.BaggageAllowance,
-		LastTicketingDate: lastTicketingDate,
-		BookableSeats:     req.BookableSeats,
-		CachedAt:          time.Now(),
-		ExpiresAt:         expiresAt,
-		IsActive:          true,
-	}
-
-	_, err = offersCollection.InsertOne(ctx, create)
+	resilt, err := h.flightService.CreateOffer(r.Context(), req)
 	if err != nil {
 		utils.Logger.Warn("Failed to create offer")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating offer")
@@ -364,18 +220,18 @@ func FlightOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Successfully created offer")
-	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{"flightID": flightID.Hex()})
+	utils.RespondWithJson(w, http.StatusCreated, resilt)
 
 }
 
 // update offer
-func UpdateOffer(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing admin ID")
 		return
@@ -395,11 +251,9 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Price             float64   `json:"price"`
+		Price             int64   `json:"price"`
 		OneWay            bool      `json:"oneway"`
 		BookableSeats     int       `json:"bookableSeats"`
-		LastTicketingDate time.Time `json:"lastTicketingDate"`
-		ExpiresAt         time.Time `json:"expiresAt"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -407,44 +261,7 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight_offers")
-	var offer model.FlightOffer
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = offerCollection.FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
-		} else {
-			utils.Logger.Warn("Failed to find offer")
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error finding offer")
-		}
-		return
-	}
-
-	var lastTicketingDate *time.Time
-	if !req.LastTicketingDate.IsZero() {
-		lastTicketingDate = &req.LastTicketingDate
-	}
-
-	var expiresAt *time.Time
-	if !req.ExpiresAt.IsZero() {
-		expiresAt = &req.ExpiresAt
-	}
-
-	update := bson.M{
-		"$set": bson.M{
-			"priceTotal":        req.Price,
-			"oneway":            req.OneWay,
-			"bookableSeats":     req.BookableSeats,
-			"lastTicketingDate": lastTicketingDate,
-			"expiresAt":         expiresAt,
-		},
-	}
-
-	_, err = offerCollection.UpdateOne(ctx, bson.M{"_id": offerID}, update)
+	result, err := h.flightService.UpdateOffer(r.Context(), offerID, req)
 	if err != nil {
 		utils.Logger.Warn("Failed to update offer")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer")
@@ -452,17 +269,17 @@ func UpdateOffer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Logger.Info("Offer updated Successfully")
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, result)
 }
 
 // offer status
-func IsActive(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) IsActive(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only PATCH allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
 		return
@@ -490,44 +307,26 @@ func IsActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight_offers")
-	//var offer model.FlightOffer
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	update := bson.M{
-		"$set": bson.M{
-			"isActive": req.IsActive,
-		},
-	}
-
-	result, err := offerCollection.UpdateOne(ctx, bson.M{"_id": offerID}, update)
-	if err != nil {
+	if err := h.flightService.IsActive(r.Context(), offerID, req.IsActive); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating offer status")
 		utils.Logger.Warn("Failed to update offer status")
 		return
 	}
 
-	if result.MatchedCount == 0 {
-		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
-		return
-	}
-
 	utils.Logger.Info("Update successful")
-	utils.RespondWithJson(w, http.StatusOK,  map[string]any{
+	utils.RespondWithJson(w, http.StatusOK, map[string]any{
 		"isActive": req.IsActive,
 	})
 }
 
 // delete offer
-func DeleteOffer(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only DELETE allowed")
 		return
 	}
 
-	_, err := utils.GetAdminID()
+	_, err := utils.GetAdminID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing Admin ID")
 		return
@@ -546,25 +345,14 @@ func DeleteOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offerCollection := database.DB.Collection("flight_offers")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	result, err := offerCollection.DeleteOne(ctx, bson.M{"_id": offerID})
-	if err != nil {
+	if err := h.flightService.DeleteOffer(r.Context(), offerID); err != nil {
 		utils.Logger.Warn("Failed to delete offer")
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting offer")
 		return
 	}
 
-	if result.DeletedCount == 0 {
-		utils.RespondWithError(w, http.StatusNotFound, "Offer not found")
-		return
-	}
-
 	utils.Logger.Info("Offer deleted successfully")
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
 //booking stats

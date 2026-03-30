@@ -29,36 +29,41 @@ func (r *FlightRepo) Create(ctx context.Context, flight *model.Flight) error {
 	return nil
 }
 
-func (r *FlightRepo) Update(ctx context.Context, flightID primitive.ObjectID) (*model.Flight, error) {
+func (r *FlightRepo) Update(ctx context.Context, flightID primitive.ObjectID, depTime, arrTime time.Time, stops int) error {
 	var flight model.Flight
 
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
-		return nil, fmt.Errorf("finding flight: %w", err)
+		return mongo.ErrNoDocuments
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"departureTime": flight.DepartureTime,
-			"arrivalTime":   flight.ArrivalTime,
-			"stops":         flight.Stops,
+			"departureTime": depTime,
+			"arrivalTime":   arrTime,
+			"stops":         stops,
 			"updatedAt":     time.Now(),
 		},
 	}
 
 	_, err := r.db.Collection("flghts").UpdateOne(ctx, bson.M{"_id": flightID}, update)
 	if err != nil {
-		return nil, fmt.Errorf("updating flight: %w", err)
+		return fmt.Errorf("updating flight: %w", err)
 	}
 
-	return &flight, nil
+	// if result.MatchedCount == 0 {
+	// 	return fmt.Errorf("flight  not found: %s", flightID.Hex())
+	// }
+
+	return nil
 
 }
 
-func (r *FlightRepo) UpdateStatus(ctx context.Context, flightID primitive.ObjectID, status string) (*model.Flight, error) {
+func (r *FlightRepo) UpdateStatus(ctx context.Context, flightID primitive.ObjectID, status *model.FlightStatus) error {
+
 	var flight model.Flight
 
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
-		return nil, fmt.Errorf("finding flight: %w", err)
+		return mongo.ErrNoDocuments
 	}
 
 	update := bson.M{
@@ -69,10 +74,10 @@ func (r *FlightRepo) UpdateStatus(ctx context.Context, flightID primitive.Object
 
 	_, err := r.db.Collection("flights").UpdateOne(ctx, bson.M{"_id": flightID}, update)
 	if err != nil {
-		return nil, fmt.Errorf("updating flight status: %w", err)
+		return fmt.Errorf("updating flight status: %w", err)
 	}
 
-	return &flight, nil
+	return nil
 
 }
 
@@ -99,55 +104,65 @@ func (r *FlightRepo) CreateOffer(ctx context.Context, offer *model.FlightOffer) 
 	return nil
 }
 
-func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID) (*model.FlightOffer, error) {
-	var offer model.FlightOffer
+func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, price, seats int, oneWay bool) error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"priceTotal":        offer.PriceTotal,
-			"oneway":            offer.OneWay,
-			"bookableSeats":     offer.BookableSeats,
+			"priceTotal":        price,
+			"oneway":            oneWay,
+			"bookableSeats":     seats,
 			"lastTicketingDate": time.Now(),
 			"expiresAt":         time.Now(),
 		},
 	}
 
-	_, err := r.db.Collection("flight_offers").UpdateOne(ctx, bson.M{"_id": offerID}, update)
+	result, err := r.db.Collection("flight_offers").UpdateOne(ctx, bson.M{"_id": offerID}, update)
 	if err != nil {
-		return nil, fmt.Errorf("updating offer: %w", err)
+		return fmt.Errorf("updting offer")
 	}
 
-	return &offer, nil
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("flight offer not found: %s", offerID.Hex())
+	}
+
+	return nil
 }
 
 func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, isActive bool) error {
 	update := bson.M{
 		"$set": bson.M{
-			"isActive": isActive,
+			"isActive":  isActive,
+			"updatedAt": time.Now(),
 		},
 	}
 
-	_, err := r.db.Collection("flight_offers").UpdateOne(ctx, bson.M{"_id": offerID}, update)
+	result, err := r.db.Collection("flight_offers").UpdateOne(
+		ctx,
+		bson.M{"_id": offerID},
+		update,
+	)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("offer not found")
-		}
-		return fmt.Errorf("updating status: %w", err)
+		return fmt.Errorf("database error updating offer status: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("flight offer not found: %s", offerID.Hex())
+	}
+
+	if result.ModifiedCount == 0 && isActive {
+
 	}
 
 	return nil
-
 }
-
 func (r *FlightRepo) DeleteOffer(ctx context.Context, offerID primitive.ObjectID) error {
-	var offer model.FlightOffer
-
-	err := r.db.Collection("flights").FindOneAndDelete(ctx, bson.M{"_id": offerID}).Decode(&offer)
+	result, err := r.db.Collection("flight_offers").DeleteOne(ctx, bson.M{"_id": offerID})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("offer not found")
-		}
-		return fmt.Errorf("deliting offer: %w", err)
+		return fmt.Errorf("hard delete offer: %w", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("not found: %w", err)
 	}
 
 	return nil

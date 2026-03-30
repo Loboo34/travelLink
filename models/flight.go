@@ -25,7 +25,7 @@ type Flight struct {
 	AirlineID     primitive.ObjectID   `bson:"airlineID" json:"airlineID"`
 	FlightNumber  string               `bson:"flightNumber" json:"flightNumber"`
 	CabinClass    []FlightCabinClass   `bson:"cabinClass" json:"cabinClass"`
-	Stops         int                  `bson:"stops" json:"stops"` //check how stops are handled
+	Stops         int                  `bson:"stops" json:"stops"`
 	Segments      []primitive.ObjectID `bson:"segments" json:"segments"`
 	PlaneID       primitive.ObjectID   `bson:"planeID" json:"planeID"`
 	Status        FlightStatus         `bson:"status" json:"status"`
@@ -70,7 +70,7 @@ type CabinClass struct {
 	Name         string         `bson:"name" json:"name"`
 	Type         CabinClassType `bson:"type" json:"type"`
 	SeatCapacity int            `bson:"seatCapacity" json:"seatCapacity"`
-	AmenityLevel string         `bson:"amenityLevel" json:"amenityLevel"`
+	//AmenityLevel string         `bson:"amenityLevel" json:"amenityLevel"`
 }
 
 type FlightCabinClass struct {
