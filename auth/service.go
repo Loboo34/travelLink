@@ -131,12 +131,10 @@ func (s *UserService) Login(ctx context.Context, req LoginRequest) (*AuthResult,
 }
 
 func (s *UserService) GetProfile(ctx context.Context, userID primitive.ObjectID) (*model.User, error) {
-
-	_, err := s.userRepo.GetUser(ctx, userID)
+	user, err := s.userRepo.GetUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("error finding user: %w", err)
 	}
 
-	return &model.User{}, nil
-
+	return user, nil
 }
