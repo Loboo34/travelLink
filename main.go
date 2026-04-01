@@ -85,6 +85,12 @@ func main() {
 	flightService := service.NewFlightService(flightRepo)
 	flightHandler := handlers_admin.NewFlightHandler(flightService)
 
+	accommodatioRepo := repository.NewAccommodationRepo(db)
+	accommodationService := service.NewAccommodationService(accommodatioRepo)
+	accommodationHandler := handlers_admin.NewAccommodationHandler(accommodationService)
+
+	//Routes
+
 	//auth
 	r.HandleFunc("/auth/register", userHandler.Register)
 	r.HandleFunc("/auth/login", userHandler.Login)
@@ -106,6 +112,14 @@ func main() {
 	r.Handle("/offer/update/{offerID}", admin(http.HandlerFunc(flightHandler.UpdateOffer)))
 	r.Handle("/offer/isactive/{offerID}", admin(http.HandlerFunc(flightHandler.IsActive)))
 	r.Handle("/offer/delete/{offerID}", admin(http.HandlerFunc(flightHandler.DeleteOffer)))
+
+	//accommodation
+	r.Handle("/accommodation/add", admin(http.HandlerFunc(accommodationHandler.AddAccommodation)))
+	r.Handle("/accommodation/update/{accommodationID}", admin(http.HandlerFunc(accommodationHandler.Update)))
+	r.Handle("/accommodation/delete/{accommodationID}", admin(http.HandlerFunc(accommodationHandler.DeleteAccommodation)))
+	r.Handle("/availability/add", admin(http.HandlerFunc(accommodationHandler.Availability)))
+	r.Handle("/availability/status/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.IsActive)))
+	r.Handle("/availability/remove/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.RemoveAvailability)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

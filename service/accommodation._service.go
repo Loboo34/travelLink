@@ -46,7 +46,7 @@ type AccommodationUpdate struct {
 
 type AvailabilityRequest struct {
 	AccommodationID primitive.ObjectID `json:"accommodationID"`
-	RoomTypeID      model.RoomType     `json:"roomTypeID"`
+	RoomTypeID      primitive.ObjectID `json:"roomTypeID"`
 	Date            time.Time          `json:"date"`
 	TotalRooms      int                `json:"totalRooms"`
 	PricePerNight   int64              `json:"pricePerNight"`
@@ -54,7 +54,7 @@ type AvailabilityRequest struct {
 
 type AvailabilityResult struct {
 	AccommodationID primitive.ObjectID `json:"accommodationID"`
-	RoomTypeID      model.RoomType     `json:"roomTypeID"`
+	RoomTypeID      primitive.ObjectID     `json:"roomTypeID"`
 	TotalRooms      int                `json:"totalRooms"`
 }
 
@@ -118,7 +118,7 @@ func (s *AccommodationService) Availability(ctx context.Context, req Availabilit
 	availability := &model.AccommodationAvailability{
 		ID:              availabilityID,
 		AccommodationID: req.AccommodationID,
-		RoomTypeID:      req.RoomTypeID.ID,
+		RoomTypeID:      req.RoomTypeID,
 		Date:            req.Date,
 		TotalRooms:      req.TotalRooms,
 		ReservedRooms:   0,
