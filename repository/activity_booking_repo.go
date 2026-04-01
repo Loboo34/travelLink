@@ -104,7 +104,7 @@ func (r *ActivityBookingRepo) GetBooking(ctx context.Context, bookingID primitiv
 	return &booking, nil
 }
 
-func (r *ActivityBookingRepo) CancelFlight(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
+func (r *ActivityBookingRepo) CancelBooking(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
 
 	update := bson.M{
 		"$set": bson.M{

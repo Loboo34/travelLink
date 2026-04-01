@@ -147,7 +147,7 @@ func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.Ob
 		return nil, &model.ConflictError{Message: fmt.Sprintf("cannot cancel booking with status %q", booking.Status)}
 	}
 
-	if err := s.bookingRepo.CancelFlight(ctx, req.BookingID, req.Reason); err != nil {
+	if err := s.bookingRepo.CancelBooking(ctx, req.BookingID, req.Reason); err != nil {
 		return nil, fmt.Errorf("error cancellign activity")
 	}
 

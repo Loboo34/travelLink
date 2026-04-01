@@ -1,4 +1,4 @@
-package user
+package handlers
 
 import (
 	"context"
@@ -88,15 +88,15 @@ func GetPackage(w http.ResponseWriter, r *http.Request) {
 }
 
 // search for packages
-type PackageHandler struct {
-	packageService *service.PackageService
+type PackageSearchHandler struct {
+	packageService *service.PackageSearchService
 }
 
-func NewPackageHandler(packageService *service.PackageService) *PackageHandler {
-	return &PackageHandler{packageService: packageService}
+func NewPackageHandler(packageService *service.PackageSearchService) *PackageSearchHandler {
+	return &PackageSearchHandler{packageService: packageService}
 }
 
-func (h *PackageHandler) PackageSearch(w http.ResponseWriter, r *http.Request) {
+func (h *PackageSearchHandler) PackageSearch(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return

@@ -8,8 +8,8 @@ import (
 	"github.com/Loboo34/travel/repository"
 )
 
-type FlightService struct {
-	FlightRepo  *repository.FlightRepo
+type FlightSearchService struct {
+	FlightSearchRepo  *repository.FlightSearchRepo
 	AirportRepo *repository.AirportRepo
 }
 
@@ -21,14 +21,14 @@ type FlightSearchResults struct {
 	PageSize int                 `json:"pageSize"`
 }
 
-func NewFlightService(FlightRepo *repository.FlightRepo, AirportRepo *repository.AirportRepo) *FlightService {
-	return &FlightService{
-		FlightRepo:  FlightRepo,
+func NewFlightSearchService(flightSearchRepo *repository.FlightSearchRepo, AirportRepo *repository.AirportRepo) *FlightSearchService {
+	return &FlightSearchService{
+		FlightSearchRepo: flightSearchRepo,
 		AirportRepo: AirportRepo,
 	}
 }
 
-func (s *FlightService) Search(ctx context.Context, params model.FlightSearch) (*FlightSearchResults, error) {
+func (s *FlightSearchService) Search(ctx context.Context, params model.FlightSearch) (*FlightSearchResults, error) {
 	if err := params.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid search params: %w", err)
 	}
@@ -61,8 +61,8 @@ func (s *FlightService) Search(ctx context.Context, params model.FlightSearch) (
 	return s.roundTripSearch(ctx, params, filter)
 }
 
-func (s *FlightService) oneWaySearch(ctx context.Context, params model.FlightSearch, filter repository.FlightFilter) (*FlightSearchResults, error) {
-	offers, err := s.FlightRepo.SearchOffers(ctx, filter)
+func (s *FlightSearchService) oneWaySearch(ctx context.Context, params model.FlightSearch, filter repository.FlightFilter) (*FlightSearchResults, error) {
+	offers, err := s.FlightSearchRepo.SearchOffers(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("Outboud search: %w", err)
 	}
@@ -76,7 +76,7 @@ func (s *FlightService) oneWaySearch(ctx context.Context, params model.FlightSea
 
 }
 
-func (s *FlightService) roundTripSearch(ctx context.Context, params model.FlightSearch, outboundFilter repository.FlightFilter) (*FlightSearchResults, error) {
+func (s *FlightSearchService) roundTripSearch(ctx context.Context, params model.FlightSearch, outboundFilter repository.FlightFilter) (*FlightSearchResults, error) {
 
 	inboundFilter := repository.FlightFilter{
 		OriginID:      outboundFilter.DestinationID,
@@ -98,12 +98,12 @@ func (s *FlightService) roundTripSearch(ctx context.Context, params model.Flight
 	inboundCh := make(chan result, 1)
 
 	go func() {
-		offers, err := s.FlightRepo.SearchOffers(ctx, outboundFilter)
+		offers, err := s.FlightSearchRepo.SearchOffers(ctx, outboundFilter)
 		outboundCh <- result{offers, err}
 	}()
 
 	go func() {
-		offers, err := s.FlightRepo.SearchOffers(ctx, inboundFilter)
+		offers, err := s.FlightSearchRepo.SearchOffers(ctx, inboundFilter)
 		inboundCh <- result{offers, err}
 	}()
 

@@ -11,12 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ActivityRepo struct {
+type ActivitySearchRepo struct {
 	db *mongo.Database
 }
 
-func NewActivityRepo(db *mongo.Database) *ActivityRepo {
-	return &ActivityRepo{db: db}
+func NewActivitySearchRepo(db *mongo.Database) *ActivitySearchRepo {
+	return &ActivitySearchRepo{db: db}
 }
 
 type ActivityFilter struct {
@@ -31,7 +31,7 @@ type ActivityFilter struct {
 	PageSize     int
 }
 
-func (r *ActivityRepo) SearchActivity(ctx context.Context, a *ActivityFilter) ([]model.ActivitySearchResult, error) {
+func (r *ActivitySearchRepo) SearchActivity(ctx context.Context, a *ActivityFilter) ([]model.ActivitySearchResult, error) {
 
 	totalParticipants := a.Participants.Adults + a.Participants.Children + a.Participants.Infants
 	pipeline := mongo.Pipeline{

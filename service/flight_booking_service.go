@@ -14,12 +14,12 @@ import (
 )
 
 type FlightBookingService struct {
-	flightRepo  *repository.FlightRepo
+	flightRepo  *repository.FlightSearchRepo
 	bookingRepo *repository.FlightBookingRepo
 	payment     payment.Provider
 }
 
-func NewFlightBookingService(flightRepo *repository.FlightRepo,
+func NewFlightBookingService(flightRepo *repository.FlightSearchRepo,
 	bookingRepo *repository.FlightBookingRepo,
 	payment payment.Provider) *FlightBookingService {
 	return &FlightBookingService{

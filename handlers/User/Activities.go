@@ -1,4 +1,4 @@
-package user
+package handlers
 
 import (
 	"context"
@@ -89,15 +89,15 @@ func GetActivity(w http.ResponseWriter, r *http.Request) {
 }
 
 // search activity
-type ActivityHandler struct {
-	activityService *service.ActivityService
+type ActivitySearchHandler struct {
+	activityService *service.ActivitySearchService
 }
 
-func NewActivityHandler(activityService *service.ActivityService) *ActivityHandler {
-	return &ActivityHandler{activityService: activityService}
+func NewActivityHandler(activityService *service.ActivitySearchService) *ActivitySearchHandler {
+	return &ActivitySearchHandler{activityService: activityService}
 }
 
-func (h *ActivityHandler) ActivitySearch(w http.ResponseWriter, r *http.Request) {
+func (h *ActivitySearchHandler) ActivitySearch(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return

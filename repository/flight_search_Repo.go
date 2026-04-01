@@ -13,12 +13,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type FlightRepo struct {
+type FlightSearchRepo struct {
 	db *mongo.Database
 }
 
-func NewFligthRepo(db *mongo.Database) *FlightRepo {
-	return &FlightRepo{db: db}
+func NewFligthRepo(db *mongo.Database) *FlightSearchRepo {
+	return &FlightSearchRepo{db: db}
 }
 
 type FlightFilter struct {
@@ -32,7 +32,7 @@ type FlightFilter struct {
 	PageSize      int
 }
 
-func (r *FlightRepo) SearchOffers(ctx context.Context, f FlightFilter) ([]model.FlightOffer, error) {
+func (r *FlightSearchRepo) SearchOffers(ctx context.Context, f FlightFilter) ([]model.FlightOffer, error) {
 	startOfDay := time.Date(
 		f.DepartureTime.Year(), f.DepartureTime.Month(), f.DepartureTime.Day(),
 		0, 0, 0, 0, time.UTC,

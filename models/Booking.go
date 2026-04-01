@@ -13,7 +13,7 @@ type FlightBooking struct {
 	PassengerDetails   []UserDetails      `bson:"passengerDetails" json:"passengerDetails"`
 	Status             BookingStatus      `bson:"status" json:"status"`
 	SelectedSeat       []string           `bson:"selectedSeat" json:"selectedSeat"`
-	NumberOfSeats      uint               `bson:"numberOfSeats" json:"numberOfSeats"`
+	NumberOfSeats      int                `bson:"numberOfSeats" json:"numberOfSeats"`
 	AmountPaid         int64              `bson:"amountPaid" json:"amountPaid"`
 	Payment            Payment            `bson:"payment" json:"payment"`
 	CancellationDate   *time.Time         `bson:"cancellationDate" json:"cancellationDate"`
@@ -30,6 +30,7 @@ type AccommodationBooking struct {
 	UserDetails        []UserDetails      `bson:"userDetails" json:"userDetails"`
 	CheckIn            time.Time          `bson:"checkin" json:"checkin"`
 	Checkout           time.Time          `bson:"checkout" json:"checkout"`
+	Rooms              int                `bson:"rooms" json:"rooms"`
 	Nights             int                `bson:"nights" json:"nights"`
 	RoomTypeID         primitive.ObjectID `bson:"roomTypeID" json:"roomTypeID"`
 	AmountPaid         int64              `bson:"amountPaid" json:"amountPaid"`
@@ -154,6 +155,7 @@ const (
 	BookingStatusPending   BookingStatus = "pending"
 	BookingStatusFailed    BookingStatus = "Failed"
 	BookingStatusConfirmed BookingStatus = "confirmed"
+	BookingStatusCanceled  BookingStatus = "canceled"
 )
 
 type RefundStatus string

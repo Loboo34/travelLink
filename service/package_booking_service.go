@@ -11,12 +11,13 @@ import (
 	"github.com/Loboo34/travel/repository"
 	"github.com/Loboo34/travel/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.uber.org/zap"
 )
 
 type PackageBookingService struct {
 	flightRepo        *repository.FlightBookingRepo
 	accommodationRepo *repository.AccommodationBookingRepo
-	accomRepo         *repository.AccommodationRepo
+	accomRepo         *repository.AccommodationSearchRepo
 	activityRepo      *repository.ActivityBookingRepo
 	packageRepo       *repository.PackageBookingRepo
 	payment           payment.Provider
@@ -24,7 +25,7 @@ type PackageBookingService struct {
 
 func NewPackageBookingRepo(flightRepo *repository.FlightBookingRepo,
 	accommodationRepo *repository.AccommodationBookingRepo,
-	accomRepo *repository.AccommodationRepo,
+	accomRepo *repository.AccommodationSearchRepo,
 	activityRepo *repository.ActivityBookingRepo,
 	packageRepo *repository.PackageBookingRepo,
 	payment payment.Provider) *PackageBookingService {
@@ -47,7 +48,7 @@ type PackageBookingResults struct {
 
 func (s *PackageBookingService) Book(ctx context.Context, userID primitive.ObjectID, req model.PackageBookingRequest) (*PackageBookingResults, error) {
 	if err := req.Validate(); err != nil {
-		return nil, fmt.Errorf("validation error")
+		return nil, &model.ValidationError{}
 	}
 
 	_, err := s.packageRepo.GetPackage(ctx, req.PackageID)
@@ -97,7 +98,7 @@ func (s *PackageBookingService) Book(ctx context.Context, userID primitive.Objec
 	}
 
 	if reservationErr != nil {
-		s.rollBack(ctx, req.PackageID, successfulReservations, req, travelers)
+		s.rollBack(ctx, req.PackageID, successfulReservations, travelers)
 		if errors.Is(reservationErr, reservationErr) {
 			return nil, fmt.Errorf("reserving package: %w", reservationErr)
 		}
@@ -125,7 +126,7 @@ func (s *PackageBookingService) Book(ctx context.Context, userID primitive.Objec
 	}
 
 	if err := s.packageRepo.CreateBooking(ctx, booking); err != nil {
-		s.rollBack(ctx, req.PackageID, successfulReservations, req, travelers)
+		s.rollBack(ctx, req.PackageID, successfulReservations, travelers)
 		return nil, fmt.Errorf("creating package booking: %w", err)
 	}
 
@@ -142,7 +143,7 @@ func (s *PackageBookingService) Book(ctx context.Context, userID primitive.Objec
 	})
 	if err != nil {
 		utils.Logger.Warn("payment failed")
-		s.rollBack(ctx, req.PackageID, successfulReservations, req, travelers)
+		s.rollBack(ctx, req.PackageID, successfulReservations, travelers)
 		_ = s.packageRepo.UpdateBookingStatus(ctx, bookingID, model.BookingStatusFailed, nil)
 		return nil, fmt.Errorf("error releasing reservation: %w", err)
 	}
@@ -170,7 +171,7 @@ func (s *PackageBookingService) Book(ctx context.Context, userID primitive.Objec
 
 }
 
-func (s *PackageBookingService) rollBack(ctx context.Context, packageID primitive.ObjectID, selections []model.ComponentSelection, req model.PackageBookingRequest, travelers int) {
+func (s *PackageBookingService) rollBack(ctx context.Context, packageID primitive.ObjectID, selections []model.ComponentSelection, travelers int) {
 
 	if err := s.packageRepo.ReleaseSlot(ctx, packageID, travelers); err != nil {
 		utils.Logger.Error("failed to release package")
@@ -181,7 +182,9 @@ func (s *PackageBookingService) rollBack(ctx context.Context, packageID primitiv
 		case model.ComponentFlight:
 
 			if err := s.flightRepo.ReleaseReservation(ctx, sel.ReferenceID, travelers); err != nil {
-				utils.Logger.Error("")
+				utils.Logger.Error("failed to release reservation after booking creation failure",
+					zap.String("flighID", sel.ReferenceID.Hex()),
+					zap.Error(err))
 			}
 
 		case model.ComponentAccommodation:
@@ -193,7 +196,8 @@ func (s *PackageBookingService) rollBack(ctx context.Context, packageID primitiv
 				rooms = 1
 			}
 			if err := s.accommodationRepo.ReleaseReservation(ctx, sel.ReferenceID, *sel.RoomTypeID, *sel.CheckIn, *sel.CheckOut, rooms); err != nil {
-				utils.Logger.Error("")
+				utils.Logger.Error("failed to relaease room reservation", zap.String("accomID", sel.ReferenceID.Hex()), zap.Error(err))
+
 			}
 
 		case model.ComponentActivity:
@@ -205,7 +209,8 @@ func (s *PackageBookingService) rollBack(ctx context.Context, packageID primitiv
 				participants = travelers
 			}
 			if err := s.activityRepo.ReleaseReservation(ctx, *sel.TimeslotID, participants); err != nil {
-				utils.Logger.Error("")
+				utils.Logger.Error("failed to release reservation after payment failure", zap.String("bookingID", sel.ReferenceID.Hex()), zap.Error(err))
+
 			}
 		}
 	}
@@ -261,5 +266,48 @@ func (s *PackageBookingService) reserveComponent(ctx context.Context, req model.
 	default:
 		return 0, fmt.Errorf("invalid component")
 	}
+
+}
+
+func (s *PackageBookingService) Cancel(ctx context.Context, userID primitive.ObjectID, req model.Cancellation) (*CancellationResult, error) {
+	if err := req.Validate(); err != nil {
+		return nil, fmt.Errorf("validation error")
+	}
+
+	booking, err := s.packageRepo.GetBooking(ctx, req.BookingID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting flight: %w", err)
+	}
+
+	if booking.UserID != userID {
+		return nil, fmt.Errorf("")
+	}
+
+	if booking.Status != model.BookingStatusConfirmed {
+		return nil, fmt.Errorf("")
+	}
+
+	if err := s.packageRepo.Cancel(ctx, req.BookingID, req.Reason); err != nil {
+		return nil, fmt.Errorf("error cancellign flight")
+	}
+
+	//travelers := len(booking.UserDetails)
+
+	//s.rollBack(ctx, booking.PackageID, booking., travelers);
+
+	//payment
+	if booking.Payment.PaymentReference != "" {
+		if err := s.payment.Refund(
+			ctx, booking.Payment.PaymentReference, booking.AmountPaid,
+		); err != nil {
+			utils.Logger.Error("")
+
+		}
+	}
+	return &CancellationResult{
+		BookingID:    req.BookingID,
+		Status:       model.BookingStatusCanceled,
+		RefundStatus: model.RefundStatusPending,
+	}, nil
 
 }

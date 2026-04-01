@@ -24,7 +24,7 @@ func (h *FlightBookingHandler) FLightBooking(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "missing user ID")
 		return
@@ -40,7 +40,7 @@ func (h *FlightBookingHandler) FLightBooking(w http.ResponseWriter, r *http.Requ
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		handleServiceError(w, err, "flight booking failed")
+		HandleServiceError(w, err, "flight booking failed")
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *AccommodationBookingHandler) AccommodationBooking(w http.ResponseWriter
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
@@ -78,7 +78,7 @@ func (h *AccommodationBookingHandler) AccommodationBooking(w http.ResponseWriter
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		handleServiceError(w, err, "accommodation booking failed")
+		HandleServiceError(w, err, "accommodation booking failed")
 		return
 	}
 
@@ -100,7 +100,7 @@ func (h *ActivityBookingHandler) ActivityBooking(w http.ResponseWriter, r *http.
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
@@ -116,7 +116,7 @@ func (h *ActivityBookingHandler) ActivityBooking(w http.ResponseWriter, r *http.
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-		handleServiceError(w, err, "activity booking failed")
+		HandleServiceError(w, err, "activity booking failed")
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *PackageBookingHandler) PackageBooking(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
 		return
@@ -155,7 +155,7 @@ func (h *PackageBookingHandler) PackageBooking(w http.ResponseWriter, r *http.Re
 
 	result, err := h.bookingService.Book(r.Context(), userID, req)
 	if err != nil {
-	handleServiceError(w, err, "package booking failed")
+	HandleServiceError(w, err, "package booking failed")
 		return
 	}
 
@@ -182,7 +182,7 @@ func (h *CancelFlightBooking) Cancel(w http.ResponseWriter, r *http.Request){
 		return 
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil{
 		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
 		return 
@@ -198,7 +198,7 @@ func (h *CancelFlightBooking) Cancel(w http.ResponseWriter, r *http.Request){
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-	handleServiceError(w, err, "flight cancellation failed")
+	HandleServiceError(w, err, "flight cancellation failed")
 		return 
 	}
 
@@ -219,7 +219,7 @@ func (h *CancelAccommodationBookingHandler) Cancel(w http.ResponseWriter, r *htt
 		return 
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil{
 		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
 		return 
@@ -235,7 +235,7 @@ func (h *CancelAccommodationBookingHandler) Cancel(w http.ResponseWriter, r *htt
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-		handleServiceError(w, err, "accommodation cancellation failed")
+		HandleServiceError(w, err, "accommodation cancellation failed")
 		return 
 	}
 
@@ -256,7 +256,7 @@ func (h *CancelActivityBooking) Cancel(w http.ResponseWriter, r *http.Request){
 		return 
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil{
 		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
 		return 
@@ -272,7 +272,7 @@ func (h *CancelActivityBooking) Cancel(w http.ResponseWriter, r *http.Request){
 
 	result, err := h.cancelService.Cancel(r.Context(), userID, req)
 	if err != nil{
-	handleServiceError(w, err, "activity cancelation failed")
+	HandleServiceError(w, err, "activity cancelation failed")
 		return 
 	}
 

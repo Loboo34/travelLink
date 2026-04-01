@@ -9,8 +9,8 @@ import (
 	"github.com/Loboo34/travel/repository"
 )
 
-type AccommodationService struct {
-	AccommodationRepo *repository.AccommodationRepo
+type AccommodationSearchService struct {
+	AccommodationRepo *repository.AccommodationSearchRepo
 }
 
 type AccommodationSearchResponse struct {
@@ -23,13 +23,13 @@ type AccommodationSearchResponse struct {
 	PageSize     int                               `json:"pageSize"`
 }
 
-func NewAccommodationService(repo *repository.AccommodationRepo) *AccommodationService {
-	return &AccommodationService{
+func NewAccommodationSearchService(repo *repository.AccommodationSearchRepo) *AccommodationSearchService {
+	return &AccommodationSearchService{
 		AccommodationRepo: repo,
 	}
 }
 
-func (s *AccommodationService) Search(ctx context.Context, params model.AccommodationSearch) (*AccommodationSearchResponse, error) {
+func (s *AccommodationSearchService) Search(ctx context.Context, params model.AccommodationSearch) (*AccommodationSearchResponse, error) {
 	if err := params.Validate(); err != nil {
 		return nil, fmt.Errorf("Invalid search params: %w", err)
 	}

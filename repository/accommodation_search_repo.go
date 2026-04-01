@@ -12,12 +12,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type AccommodationRepo struct {
+type AccommodationSearchRepo struct {
 	db *mongo.Database
 }
 
-func NewAccommodationRepo(db *mongo.Database) *AccommodationRepo {
-	return &AccommodationRepo{db: db}
+func NewAccommodationSearchRepo(db *mongo.Database) *AccommodationSearchRepo {
+	return &AccommodationSearchRepo{db: db}
 }
 
 type AccommodationFilter struct {
@@ -32,7 +32,7 @@ type AccommodationFilter struct {
 	PageSize     int
 }
 
-func (r *AccommodationRepo) SearchAccommodationAvailability(ctx context.Context, a *AccommodationFilter) ([]model.AccommodationSearchResult, error) {
+func (r *AccommodationSearchRepo) SearchAccommodationAvailability(ctx context.Context, a *AccommodationFilter) ([]model.AccommodationSearchResult, error) {
 
 	nights := int(a.CheckOutDate.Sub(a.CheckInDate).Hours() / 24)
 	totalGuests := a.Guests.Adults + a.Guests.Children + a.Guests.Infants
@@ -170,7 +170,7 @@ var result struct {
 	TotalPrice int64 `bson:"totalPrice"`
 }
 
-func (r *AccommodationRepo) GetTotalPrice(
+func (r *AccommodationSearchRepo) GetTotalPrice(
 	ctx context.Context,
 	accommodationID primitive.ObjectID,
 	roomTypeID primitive.ObjectID,

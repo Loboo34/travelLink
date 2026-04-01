@@ -1,4 +1,4 @@
-package user
+package handlers
 
 import (
 	"context"
@@ -91,10 +91,10 @@ func GetAccommodation(w http.ResponseWriter, r *http.Request) {
 
 // search accommodations
 type AccommodationHandler struct {
-	accommodationService *service.AccommodationService
+	accommodationService *service.AccommodationSearchService
 }
 
-func NewAccommodationHandler(accommodationService *service.AccommodationService) *AccommodationHandler {
+func NewAccommodationHandler(accommodationService *service.AccommodationSearchService) *AccommodationHandler {
 	return &AccommodationHandler{accommodationService: accommodationService}
 }
 

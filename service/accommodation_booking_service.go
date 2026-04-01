@@ -14,12 +14,12 @@ import (
 )
 
 type AccommodationBookingService struct {
-	accommodationRepo *repository.AccommodationRepo
+	accommodationRepo *repository.AccommodationSearchRepo
 	bookingRepo       *repository.AccommodationBookingRepo
 	payment           payment.Provider
 }
 
-func NewAccommodationBookingService(accommodationRepo *repository.AccommodationRepo,
+func NewAccommodationBookingService(accommodationRepo *repository.AccommodationSearchRepo,
 	bookingRepo *repository.AccommodationBookingRepo,
 	payment payment.Provider) *AccommodationBookingService {
 	return &AccommodationBookingService{

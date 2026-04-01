@@ -9,8 +9,8 @@ import (
 	"github.com/Loboo34/travel/repository"
 )
 
-type ActivityService struct {
-	ActivityRepo *repository.ActivityRepo
+type ActivitySearchService struct {
+	ActivityRepo *repository.ActivitySearchRepo
 }
 
 type ActivitySearchResponse struct {
@@ -22,14 +22,14 @@ type ActivitySearchResponse struct {
 	PageSize     int                          `json:"pageSize"`
 }
 
-func NewActivityService(repo *repository.ActivityRepo) *ActivityService{
-	return &ActivityService{
+func NewActivitySearchService(repo *repository.ActivitySearchRepo) *ActivitySearchService{
+	return &ActivitySearchService{
 		ActivityRepo: repo,
 	}
 }
 
 
-func (s *ActivityService) Search(ctx context.Context, params model.ActivitySearch)(*ActivitySearchResponse, error){
+func (s *ActivitySearchService) Search(ctx context.Context, params model.ActivitySearch)(*ActivitySearchResponse, error){
 	if err := params.Validate(); err != nil{
 		return nil, fmt.Errorf("Invalid search params: %w", err)
 	}

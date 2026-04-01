@@ -82,7 +82,7 @@ type AccommodationAvailability struct {
 	TotalRooms      int                `bson:"totalRooms" json:"totalRooms"`
 	ReservedRooms   int                `bson:"reservedRooms" json:"reservedRooms"`
 	PricePerNight   int64              `bson:"pricePerNight" json:"pricePerNight"`
-	Currency        string             `bson:"currency" json:"currency"`
+	//Currency        string             `bson:"currency" json:"currency"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`

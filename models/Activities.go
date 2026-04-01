@@ -41,7 +41,7 @@ type Activity struct {
 	ReviewCount     int                `bson:"reviewCount" json:"reviewCount,omitempty"`
 	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
-	CachedAt        time.Time          `bson:"cachedAt" json:"cachedAt"`
+	CachedAt        *time.Time          `bson:"cachedAt" json:"cachedAt"`
 	IsActive        bool               `bson:"isActive" json:"isActive"`
 }
 

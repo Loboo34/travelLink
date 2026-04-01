@@ -33,7 +33,6 @@ func ConnectDB() *mongo.Database{
 	}
 
 	Client = client
-
 	DB = client.Database("travellink")
 	return DB
 }

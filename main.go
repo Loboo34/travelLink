@@ -58,7 +58,7 @@ func main() {
 		720*time.Hour, // 30 days
 	)
 
-	//user := auth.Authenticate(jwtManager)
+	user := auth.Authenticate(jwtManager)
 
 	r.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -89,12 +89,20 @@ func main() {
 	accommodationService := service.NewAccommodationService(accommodatioRepo)
 	accommodationHandler := handlers_admin.NewAccommodationHandler(accommodationService)
 
+	activityRepo := repository.NewActivityRepo(db)
+	activityService := service.NewActivityService(activityRepo)
+	activityHandler := handlers_admin.NewActivityHandler(activityService)
+
+	packageRepo := repository.NewPackageRepo(db)
+	packageService := service.NewPackageService(packageRepo)
+	packageHandler := handlers_admin.NewPackageHandler(packageService)
+
 	//Routes
 
 	//auth
 	r.HandleFunc("/auth/register", userHandler.Register)
 	r.HandleFunc("/auth/login", userHandler.Login)
-	r.HandleFunc("/auth/profile", userHandler.GetProfile)
+	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
 
 	//user
 
@@ -120,6 +128,18 @@ func main() {
 	r.Handle("/availability/add", admin(http.HandlerFunc(accommodationHandler.Availability)))
 	r.Handle("/availability/status/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.IsActive)))
 	r.Handle("/availability/remove/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.RemoveAvailability)))
+
+	//activities
+	r.Handle("/activity/add", admin(http.HandlerFunc(activityHandler.CreateActivity)))
+	r.Handle("/activity/update/{activityID}", admin(http.HandlerFunc(activityHandler.UpdateActivity)))
+	r.Handle("/activity/delete/{activityID}", admin(http.HandlerFunc(activityHandler.DeleteActivity)))
+	r.Handle("/activity/{activityID}/timeslot", admin(http.HandlerFunc(activityHandler.CreateTimeSlot)))
+
+	//packages
+	r.Handle("/package/add", admin(http.HandlerFunc(packageHandler.CreatePackage)))
+	r.Handle("/package/update/{packageID}", admin(http.HandlerFunc(packageHandler.UpdatePackage)))
+	r.Handle("/package/status/{packageID}", admin(http.HandlerFunc(packageHandler.SetActivePackage)))
+	r.Handle("/package/delete/{packageID}", admin(http.HandlerFunc(packageHandler.DeletePackage)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

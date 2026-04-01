@@ -1,4 +1,4 @@
-package user
+package handlers
 
 import (
 	"context"
@@ -87,16 +87,16 @@ func GetFlight(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type FlightHandler struct {
-	flightService *service.FlightService
+type FLightSearchHandler struct {
+	flightService *service.FlightSearchService
 }
 
-func NewFlightHandler(flightService *service.FlightService) *FlightHandler {
-	return &FlightHandler{flightService: flightService}
+func NewFlightHandler(flightService *service.FlightSearchService) *FLightSearchHandler {
+	return &FLightSearchHandler{flightService: flightService}
 }
 
 // search flights
-func (h *FlightHandler) SearchFlight(w http.ResponseWriter, r *http.Request) {
+func (h *FLightSearchHandler) SearchFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return

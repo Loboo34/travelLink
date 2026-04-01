@@ -10,7 +10,7 @@ import (
     "go.uber.org/zap"
 )
 
-func handleServiceError(w http.ResponseWriter, err error, context string) {
+func HandleServiceError(w http.ResponseWriter, err error, context string) {
     var validationErr *model.ValidationError
     if errors.As(err, &validationErr) {
         utils.RespondWithError(w, http.StatusBadRequest, validationErr.Error())

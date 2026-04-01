@@ -1,4 +1,4 @@
-package user
+package handlers
 
 import (
 	"context"
@@ -22,13 +22,11 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
 	}
-
-	
 
 	var req struct {
 		Content   string          `json:"content"`
@@ -44,7 +42,7 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	referenceIDStr := vars["referenceID"]
-	if referenceIDStr == ""{
+	if referenceIDStr == "" {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing refference ID")
 		return
 	}
@@ -52,7 +50,7 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 	referenceID, err := primitive.ObjectIDFromHex(referenceIDStr)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid reference ID")
-		return 
+		return
 	}
 
 	reviewCollection := database.DB.Collection("reviews")
@@ -66,7 +64,7 @@ func LeaveReview(w http.ResponseWriter, r *http.Request) {
 		ReferenceID: referenceID,
 		Content:     req.Content,
 		Rating:      req.Rating,
-		IsVerified: true,
+		IsVerified:  true,
 		ReviewFor:   req.ReviewFor,
 		CreatedAt:   time.Now(),
 	}
@@ -88,7 +86,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
@@ -96,7 +94,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		Content string `json:"content"`
-		Rating int `json:"rating"`
+		Rating  int    `json:"rating"`
 	}
 
 	vars := mux.Vars(r)
@@ -111,7 +109,6 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid review ID")
 		return
 	}
-
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON format")
@@ -151,7 +148,7 @@ func UpdateReview(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{
 		"$set": bson.M{
 			"content":  req.Content,
-			"rating":     req.Rating,
+			"rating":   req.Rating,
 			"updateAt": time.Now(),
 		},
 	}
@@ -173,13 +170,11 @@ func DeleteReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := utils.GetUserID()
+	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "missing user ID")
 		return
 	}
-
-
 
 	vars := mux.Vars(r)
 	reviewIDStr := vars["reviewID"]
@@ -246,5 +241,5 @@ func GetReviews(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Warn("Failed to decode reviews")
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  reviews)
+	utils.RespondWithJson(w, http.StatusOK, reviews)
 }

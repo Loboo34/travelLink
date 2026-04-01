@@ -23,7 +23,7 @@ type User struct {
 	PhoneNumber string             `bson:"phoneNumber" json:"phoneNumber"`
 	Email       string             `bson:"email" json:"email"`
 	Password    string             `bson:"password" json:"password"`
-	Role        UserRole           `bson.M:"role" json:"role"`
+	Role        UserRole           `bson:"role" json:"role"`
 	ProfilePic  string             `bson:"profilepic" json:"profilepic"`
 	IsActive    bool               `bson:"isActive" json:"isActive"`
 	IsVerified  bool               `bson:"isVerified" json:"isVerified"`

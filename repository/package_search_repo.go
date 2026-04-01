@@ -12,12 +12,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type PackageRepo struct {
+type PackageSearchRepo struct {
 	db *mongo.Database
 }
 
-func NewPackageRepo(db *mongo.Database) *PackageRepo {
-	return &PackageRepo{db: db}
+func NewPackageSearchRepo(db *mongo.Database) *PackageSearchRepo {
+	return &PackageSearchRepo{db: db}
 }
 
 type PackageFilter struct {
@@ -33,7 +33,7 @@ type PackageFilter struct {
 	PageSize    int
 }
 
-func (r *PackageRepo) FindCandidates(
+func (r *PackageSearchRepo) FindCandidates(
 	ctx context.Context,
 	f *PackageFilter,
 ) ([]model.Package, error) {
@@ -86,7 +86,7 @@ func (r *PackageRepo) FindCandidates(
 	return packages, nil
 }
 
-func (r *PackageRepo) GetAvailability(
+func (r *PackageSearchRepo) GetAvailability(
 	ctx context.Context,
 	packageID primitive.ObjectID,
 ) (*model.PackageAvailability, error) {
@@ -108,7 +108,7 @@ func (r *PackageRepo) GetAvailability(
 	return &availability, nil
 }
 
-func (r *FlightRepo) FindActiveOffer(
+func (r *FlightSearchRepo) FindActiveOffer(
 	ctx context.Context,
 	flightID primitive.ObjectID,
 	minSeats int,
@@ -133,7 +133,7 @@ func (r *FlightRepo) FindActiveOffer(
 	return &offer, nil
 }
 
-func (r *AccommodationRepo) CheckAvailability(
+func (r *AccommodationSearchRepo) CheckAvailability(
 	ctx context.Context,
 	accommodationID primitive.ObjectID,
 	checkIn time.Time,
@@ -233,3 +233,6 @@ func sortPackageFilter(s model.PackageSortOption) bson.D {
 		return bson.D{{Key: "basePrice", Value: 1}}
 	}
 }
+
+
+
