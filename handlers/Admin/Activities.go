@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Loboo34/travel/handlers"
 	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
 	"github.com/gorilla/mux"
@@ -162,4 +163,86 @@ func (h *ActivityHandler) CreateTimeSlot(w http.ResponseWriter, r *http.Request)
 	utils.RespondWithJson(w, http.StatusCreated, result)
 }
 
-//booking stats
+func (h *ActivityHandler) GetActivities(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET")
+		return
+	}
+
+	results, err := h.activityService.GetActivities(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error decoding activities")
+		utils.Logger.Warn("Failed to decode activities")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, results)
+}
+
+func (h *ActivityHandler) GetActivity(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	activityIDStr := vars["activityID"]
+	if activityIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing activity ID")
+		return
+	}
+
+	activityID, err := primitive.ObjectIDFromHex(activityIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid activity ID")
+		return
+	}
+
+	result, err := h.activityService.GetActivity(r.Context(), activityID)
+	if err != nil {
+		handlers.HandleServiceError(w, err, "failed getting activity")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}
+
+func (h *ActivityHandler) GetTimeslots(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET")
+		return
+	}
+
+	results, err := h.activityService.GetTimeSlots(r.Context())
+	if err != nil {
+		handlers.HandleServiceError(w, err, "failed getting activity timeslots")
+		utils.Logger.Warn("Failed to decode activities")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, results)
+}
+
+func (h *ActivityHandler) GetTimeslot(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	activityIDStr := vars["timeslotID"]
+	if activityIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing activity ID")
+		return
+	}
+
+	activityID, err := primitive.ObjectIDFromHex(activityIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid activity ID")
+		return
+	}
+
+	result, err := h.activityService.GetActivity(r.Context(), activityID)
+	if err != nil {
+		handlers.HandleServiceError(w, err, "failed getting activity timeslot")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}

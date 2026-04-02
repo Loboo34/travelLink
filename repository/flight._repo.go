@@ -118,7 +118,7 @@ func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID
 			"bookableSeats":     seats,
 			"lastTicketingDate": time.Now(),
 			"expiresAt":         time.Now(),
-			"updatedAt": time.Now(),
+			"updatedAt":         time.Now(),
 		},
 	}
 
@@ -131,7 +131,7 @@ func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID
 }
 
 func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, isActive bool) error {
-		var offer model.FlightOffer
+	var offer model.FlightOffer
 
 	if err := r.db.Collection("flight_offers").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
 		return mongo.ErrNoDocuments
@@ -162,6 +162,7 @@ func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, i
 
 	return nil
 }
+
 func (r *FlightRepo) DeleteOffer(ctx context.Context, offerID primitive.ObjectID) error {
 	result, err := r.db.Collection("flight_offers").DeleteOne(ctx, bson.M{"_id": offerID})
 	if err != nil {
@@ -173,4 +174,58 @@ func (r *FlightRepo) DeleteOffer(ctx context.Context, offerID primitive.ObjectID
 	}
 
 	return nil
+}
+
+func (r *FlightRepo) GetFlights(ctx context.Context) ([]model.Flight, error) {
+	cursor, err := r.db.Collection("flights").Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("fetching flights: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var flights []model.Flight
+	if err := cursor.All(ctx, &flights); err != nil {
+		return nil, fmt.Errorf("decoding flights: %w", err)
+	}
+
+	return flights, nil
+}
+
+func (r *FlightRepo) GetFlight(ctx context.Context, flightID primitive.ObjectID) (*model.Flight, error) {
+	var flight model.Flight
+	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, mongo.ErrNoDocuments
+		}
+		return nil, fmt.Errorf("fetching flight: %w", err)
+	}
+
+	return &flight, nil
+}
+
+func (r *FlightRepo) GetOffers(ctx context.Context) ([]model.FlightOffer, error) {
+	cursor, err := r.db.Collection("flight_offers").Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("fetching flights: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var offers []model.FlightOffer
+	if err := cursor.All(ctx, &offers); err != nil {
+		return nil, fmt.Errorf("decoding offers :%w", err)
+	}
+
+	return offers, nil
+}
+
+func (r *FlightRepo) GetOffer(ctx context.Context, offerID primitive.ObjectID) (*model.FlightOffer, error) {
+	var offer model.FlightOffer
+	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, mongo.ErrNoDocuments
+		}
+		return nil, fmt.Errorf("fetching flight: %w", err)
+	}
+
+	return &offer, nil
 }

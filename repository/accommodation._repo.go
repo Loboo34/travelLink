@@ -104,22 +104,25 @@ func (r *AccommodationRepo) Remove(ctx context.Context, availabilityID primitive
 	return nil
 }
 
-func (r *AccommodationRepo) GetAvailabilities(ctx context.Context) (*model.AccommodationAvailability, error) {
-	_, err := r.db.Collection("accommodation_Availability").Find(ctx, bson.M{})
+func (r *AccommodationRepo) GetAvailabilities(ctx context.Context) ([]model.AccommodationAvailability, error) {
+ cursor, err := r.db.Collection("accommodation_Availability").Find(ctx, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("accommodation not available: %w", err)
-		}
-		return nil, fmt.Errorf("getting available accommodations")
-
+		return nil, fmt.Errorf("getting available accommodations: %w", err)
 	}
 
-	return &model.AccommodationAvailability{}, nil
+	defer cursor.Close(ctx)
+
+	var accoms []model.AccommodationAvailability
+	if err := cursor.All(ctx, &accoms); err != nil{
+		return nil, fmt.Errorf("decoding available accommodations: %w", err)
+	}
+
+	return accoms , nil
 }
 
 func (r *AccommodationRepo) GetAvailability(ctx context.Context, availabilityID primitive.ObjectID) (*model.AccommodationAvailability, error) {
-	_, err := r.db.Collection("accommodation_Availability").Find(ctx, bson.M{"_id": availabilityID})
-	if err != nil {
+	var accoms model.AccommodationAvailability
+	if err := r.db.Collection("accommodation_Availability").FindOne(ctx, bson.M{"_id": availabilityID}).Decode(&accoms); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, fmt.Errorf("accommodation not available: %w", err)
 		}
@@ -127,31 +130,37 @@ func (r *AccommodationRepo) GetAvailability(ctx context.Context, availabilityID 
 
 	}
 
-	return &model.AccommodationAvailability{}, nil
+	return &accoms, nil
 }
 
 func (r *AccommodationRepo) GetAccomodation(ctx context.Context, accommodationID primitive.ObjectID) (*model.Accommodation, error) {
+	var accommodation model.Accommodation
 	_, err := r.db.Collection("accommodations").Find(ctx, bson.M{"_id": accommodationID})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, fmt.Errorf("accommodation not available: %w", err)
 		}
 		return nil, fmt.Errorf("getting  accommodations")
-
 	}
 
-	return &model.Accommodation{}, nil
+	return &accommodation, nil
 }
 
-func (r *AccommodationRepo) GetAccomodationS(ctx context.Context) (*model.Accommodation, error) {
-	_, err := r.db.Collection("accommodations").Find(ctx, bson.M{})
+func (r *AccommodationRepo) GetAccomodations(ctx context.Context) ([]model.Accommodation, error) {
+	cursor, err := r.db.Collection("accommodations").Find(ctx, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("accommodation not available: %w", err)
-		}
-		return nil, fmt.Errorf("getting  accommodations")
+		return nil, fmt.Errorf("fetching accommodations: %w", err)
+	}
+	defer cursor.Close(ctx)
 
+	var accoms []model.Accommodation
+	if err := cursor.All(ctx, &accoms); err != nil{
+		return nil, fmt.Errorf("decoding flights: %w", err)
 	}
 
-	return &model.Accommodation{}, nil
+	return accoms, nil
 }
+
+
+
+

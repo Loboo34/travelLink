@@ -135,3 +135,55 @@ func (r *ActivityRepo) UpdateTimeslot(ctx context.Context, timeSlotID primitive.
 
 	return nil
 }
+
+func (r *ActivityRepo) GetActivity(ctx context.Context, activityID primitive.ObjectID) (*model.Activity, error){
+	var activity model.Activity
+
+	if err := r.db.Collection("activities").FindOne(ctx, bson.M{"_id": activityID}).Decode(&activity); err != nil{
+		return nil, fmt.Errorf("getting activity: %w", err)
+	}
+
+	return &activity, nil 
+}
+
+func (r *ActivityRepo) GetActivities(ctx context.Context)([]model.Activity, error){
+	cursor, err := r.db.Collection("activities").Find(ctx, bson.M{})
+	if err != nil{
+		return nil, fmt.Errorf("getting activities: %w", err)
+	}
+
+	defer cursor.Close(ctx)
+
+	var activities []model.Activity
+	if err := cursor.All(ctx, &activities); err != nil{
+		return nil, fmt.Errorf("decoding activities: %w", err)
+	}
+
+	return  activities, nil 
+}
+
+func (r *ActivityRepo) GetTmeslot(ctx context.Context, timeslotID primitive.ObjectID) (*model.ActivityTimeslot, error){
+	var timeslot model.ActivityTimeslot
+
+	if err := r.db.Collection("activity_timeslot").FindOne(ctx, bson.M{"_id": timeslotID}).Decode(&timeslot); err != nil{
+		return nil, fmt.Errorf("getting activity timeslot: %w", err)
+	}
+
+	return &timeslot, nil 
+}
+
+func (r *ActivityRepo) GetTimeSlots(ctx context.Context)([]model.ActivityTimeslot, error){
+	cursor, err := r.db.Collection("activity_timeslot").Find(ctx, bson.M{})
+	if err != nil{
+		return nil, fmt.Errorf("getting activity timeslots: %w", err)
+	}
+
+	defer cursor.Close(ctx)
+
+	var timeslots []model.ActivityTimeslot
+	if err := cursor.All(ctx, &timeslots); err != nil{
+		return nil, fmt.Errorf("decoding timeslots: %w", err)
+	}
+
+	return  timeslots, nil 
+}

@@ -164,3 +164,39 @@ func (s *ActivityService) SetTimeSlotActive(ctx context.Context, timeSlotID prim
 	}
 	return nil
 }
+
+func (s *ActivityService) GetActivity(ctx context.Context, activityID primitive.ObjectID) (*model.Activity, error){
+	activity, err := s.activityRepo.GetActivity(ctx, activityID)
+	if err != nil{
+		return nil, fmt.Errorf("getting activity: %w", err)
+	}
+
+	return activity, nil
+}
+
+func (s *ActivityService) GetActivities(ctx context.Context)(*[]model.Activity, error){
+	activities, err := s.activityRepo.GetActivities(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting activities: %w", err)
+	}
+
+	return &activities, nil 
+}
+
+func (s *ActivityService) GetTimeslot(ctx context.Context, timeslotID primitive.ObjectID) (*model.ActivityTimeslot, error){
+	timeSlot, err := s.activityRepo.GetTmeslot(ctx, timeslotID)
+	if err != nil{
+		return nil, fmt.Errorf("getting activity timeSlot: %w", err)
+	}
+
+	return timeSlot, nil
+}
+
+func (s *ActivityService) GetTimeSlots(ctx context.Context)(*[]model.ActivityTimeslot, error){
+	timeslots, err := s.activityRepo.GetTimeSlots(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting activity timeslots: %w", err)
+	}
+
+	return &timeslots, nil 
+}

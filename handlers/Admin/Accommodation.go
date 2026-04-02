@@ -131,7 +131,6 @@ func (h *AccommodationHandler) AddAccommodation(w http.ResponseWriter, r *http.R
 		}
 	}
 
-
 	result, err := h.accommodationService.Add(r.Context(), req)
 	if err != nil {
 
@@ -393,4 +392,90 @@ func (h *AccommodationHandler) RemoveAvailability(w http.ResponseWriter, r *http
 	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
-//booking stats
+func (h *AccommodationHandler) GetAcommodations(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET")
+		return
+	}
+
+	results, err := h.accommodationService.GetAccomodations(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error geting accommodations")
+		utils.Logger.Warn("Failed to decode accommodations")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, results)
+}
+
+// get accommodationID
+func (h *AccommodationHandler) GetAccommodation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	accommodationIDStr := vars["accommodationID"]
+	if accommodationIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing accommodation ID")
+		return
+	}
+
+	accommodationID, err := primitive.ObjectIDFromHex(accommodationIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid accommodation ID")
+		return
+	}
+
+	result, err := h.accommodationService.GetAccommodation(r.Context(), accommodationID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed getting accommodation")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}
+
+func (h *AccommodationHandler) GetAvailabilities(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET")
+		return
+	}
+
+	results, err := h.accommodationService.GetAvailabilities(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error geting accommodations")
+		utils.Logger.Warn("Failed to decode accommodations")
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, results)
+}
+
+// get accommodationID
+func (h *AccommodationHandler) GetAvailability(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	accommodationIDStr := vars["availableID"]
+	if accommodationIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing accommodation ID")
+		return
+	}
+
+	accommodationID, err := primitive.ObjectIDFromHex(accommodationIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid accommodation ID")
+		return
+	}
+
+	result, err := h.accommodationService.GetAvailability(r.Context(), accommodationID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed getting accommodation")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}

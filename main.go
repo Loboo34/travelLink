@@ -104,8 +104,6 @@ func main() {
 	r.HandleFunc("/auth/login", userHandler.Login)
 	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
 
-	//user
-
 	//admin
 	admin := auth.RequireAdmin(jwtManager)
 
@@ -140,6 +138,30 @@ func main() {
 	r.Handle("/package/update/{packageID}", admin(http.HandlerFunc(packageHandler.UpdatePackage)))
 	r.Handle("/package/status/{packageID}", admin(http.HandlerFunc(packageHandler.SetActivePackage)))
 	r.Handle("/package/delete/{packageID}", admin(http.HandlerFunc(packageHandler.DeletePackage)))
+
+
+	//user
+	//fetch
+	r.HandleFunc("/flights", flightHandler.GetFlights)
+	r.HandleFunc("/flight/{flightID}", flightHandler.GetFlight)
+
+	r.HandleFunc("/offers", flightHandler.GetOffers)
+	r.HandleFunc("/offer/{offerID}", flightHandler.GetOffer)
+
+	r.HandleFunc("/accommodations", accommodationHandler.GetAcommodations)
+	r.HandleFunc("/accommodation/{accommodationID}", accommodationHandler.GetAccommodation)
+
+	r.HandleFunc("/available", accommodationHandler.GetAvailabilities)
+	r.HandleFunc("/available/{availilableID}", accommodationHandler.GetAvailability)
+
+	r.HandleFunc("/activitties", activityHandler.GetActivities)
+	r.HandleFunc("/activity/{activityID}", activityHandler.GetActivity)
+
+	r.HandleFunc("/timeslots", activityHandler.GetTimeslots)
+	r.HandleFunc("/timeslot/{timeslotID}", activityHandler.GetTimeslot)
+	//search
+
+	//booking
 
 	port := os.Getenv("PORT")
 	if port == "" {

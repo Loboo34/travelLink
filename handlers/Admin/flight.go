@@ -342,4 +342,93 @@ func (h *FlightHandler) DeleteOffer(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
-//booking stats
+func (h *FlightHandler) GetFlights(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	flights, err := h.flightService.GetFlights(r.Context())
+	if err != nil{
+		handlers.HandleServiceError(w, err, "fetching flights")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK,  flights)
+}
+
+
+func (h *FlightHandler)  GetFlight(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	flightIDStr := vars["flightID"]
+	if flightIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing flight ID")
+		return
+	}
+
+	flightID, err := primitive.ObjectIDFromHex(flightIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+
+	result, err := h.flightService.GetFlight(r.Context(), flightID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding flight")
+		utils.Logger.Warn("Failed to find flight")
+		return
+	}
+
+	utils.Logger.Info("Fetched flight")
+	utils.RespondWithJson(w, http.StatusOK, result)
+}
+
+func (h *FlightHandler) GetOffers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	offers, err := h.flightService.GetOffers(r.Context())
+	if err != nil{
+		handlers.HandleServiceError(w, err, "fetching offers")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK,  offers)
+}
+
+func (h *FlightHandler)  GetOffer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	flightIDStr := vars["offerID"]
+	if flightIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing offer ID")
+		return
+	}
+
+	flightID, err := primitive.ObjectIDFromHex(flightIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid flight ID")
+		return
+	}
+
+	result, err := h.flightService.GetOffer(r.Context(), flightID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding offer")
+		utils.Logger.Warn("Failed to find offer")
+		return
+	}
+
+	utils.Logger.Info("Fetched flight")
+	utils.RespondWithJson(w, http.StatusOK, result)
+}

@@ -155,3 +155,41 @@ func (s *AccommodationService) Remove(ctx context.Context, accommodationID primi
 
 	return nil
 }
+
+
+func (s *AccommodationService) GetAccomodations(ctx context.Context) (*[]model.Accommodation, error) {
+	accommodations, err := s.accommodationRepo.GetAccomodations(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting accommodations: %w", err)
+	}
+
+	return &accommodations, nil
+}
+
+func (s *AccommodationService) GetAccommodation(ctx context.Context, accommodationID primitive.ObjectID) (*model.Accommodation, error){
+ accommodation, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID)
+ if err != nil{
+	return nil, fmt.Errorf("getting accommodation: %w", err)
+ }
+
+ return accommodation, nil
+}
+
+
+func (s *AccommodationService) GetAvailabilities(ctx context.Context) (*[]model.AccommodationAvailability, error){
+	availability, err := s.accommodationRepo.GetAvailabilities(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting available accommodations: %w", err)
+	}
+
+	return &availability, nil
+}
+
+func (s *AccommodationService) GetAvailability(ctx context.Context, availabilityID primitive.ObjectID) (*model.AccommodationAvailability, error){
+	accom, err := s.accommodationRepo.GetAvailability(ctx, availabilityID)
+	if err != nil{
+		return nil, fmt.Errorf("getting available accommodation: %w", err)
+	}
+
+	return accom, nil
+}

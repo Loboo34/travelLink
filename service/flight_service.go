@@ -209,3 +209,40 @@ func (s *FlightService) DeleteOffer(ctx context.Context, offerID primitive.Objec
 	return nil
 
 }
+
+func (s *FlightService) GetFlights(ctx context.Context) (*[]model.Flight, error) {
+	flights, err := s.FlightRepo.GetFlights(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting flights: %w", err)
+	}
+
+	return &flights, nil
+}
+
+func (s *FlightService) GetFlight(ctx context.Context, flightID primitive.ObjectID) (*model.Flight, error){
+ flight, err := s.FlightRepo.GetFlight(ctx, flightID)
+ if err != nil{
+	return nil, fmt.Errorf("getting flight: %w", err)
+ }
+
+ return flight, nil
+}
+
+func (s *FlightService) GetOffer(ctx context.Context, offerID primitive.ObjectID)(*model.FlightOffer, error){
+	offer, err := s.FlightRepo.GetOffer(ctx, offerID)
+	if err != nil{
+		return nil, fmt.Errorf("getting offer: %w", err)
+	}
+
+	return offer, nil 
+}
+
+func (s *FlightService) GetOffers(ctx context.Context)(*[]model.FlightOffer, error){
+	offers, err := s.FlightRepo.GetOffers(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting offers: %w", err)
+	}
+
+	return &offers, nil
+}
+
