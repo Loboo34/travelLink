@@ -103,6 +103,7 @@ func main() {
 	r.HandleFunc("/auth/register", userHandler.Register)
 	r.HandleFunc("/auth/login", userHandler.Login)
 	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
+	r.Handle("/user/profile", user(http.HandlerFunc(userHandler.UpdateProfile)) )
 
 	//admin
 	admin := auth.RequireAdmin(jwtManager)

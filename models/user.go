@@ -31,6 +31,7 @@ type User struct {
 	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
+
 type ID struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	User     User               `bson:"user" json:"user"`

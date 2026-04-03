@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	model "github.com/Loboo34/travel/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -62,3 +63,33 @@ func (r *UserRepo) GetUser(ctx context.Context, userID primitive.ObjectID) (*mod
 
 	return &user, nil
 }
+
+func (r *UserRepo) UpdateProfile(ctx context.Context, userID primitive.ObjectID, firstName, lastName, gender, nationality, phoneNuber, email string, dateOfBirth time.Time) error {
+
+	var user model.User
+	if err := r.db.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user); err != nil {
+		return fmt.Errorf("getting user")
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"firstName":    firstName,
+			"lastName":     lastName,
+			"gender":       gender,
+			"natioonality": nationality,
+			"phoneNumber":  phoneNuber,
+			"email":        email,
+			"dateOfBirth":  dateOfBirth,
+			"updatedAt":    time.Now(),
+		},
+	}
+
+	_, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	if err != nil {
+		return fmt.Errorf("updating profile")
+	}
+
+	return nil
+}
+
+

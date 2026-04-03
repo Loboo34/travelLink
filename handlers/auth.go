@@ -62,22 +62,50 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusCreated, result)
 }
 
-func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodGet{
+func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "only GET allowed")
-		return 
+		return
 	}
 
 	userID, err := utils.GetUserID(r.Context())
-	if err != nil{
+	if err != nil {
 		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
-		return 
+		return
 	}
 
 	result, err := h.userService.GetProfile(r.Context(), userID)
-	if err != nil{
+	if err != nil {
 		HandleServiceError(w, err, "failed to get profile")
-		return 
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}
+
+func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "only PATCH allowed")
+		return
+	}
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return
+	}
+
+	var req auth.UpdateProfile
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid json format")
+		return
+	}
+
+	result, err := h.userService.Update(r.Context(), userID, req)
+	if err != nil {
+		HandleServiceError(w, err, "failed to update profile")
+		return
 	}
 
 	utils.RespondWithJson(w, http.StatusOK, result)

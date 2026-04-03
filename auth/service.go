@@ -138,3 +138,30 @@ func (s *UserService) GetProfile(ctx context.Context, userID primitive.ObjectID)
 
 	return user, nil
 }
+
+type UpdateProfile struct {
+	FirstName   string    `bson:"firstName" json:"firstName"`
+	LastName    string    `bson:"lastName" json:"lastName"`
+	Gender      string    `bson:"gender" json:"gender"`
+	DateOfBirth time.Time `bson:"dateOfBirth" json:"dateOfBirth"`
+	Nationality string    `bson:"nationality" json:"nationality"`
+	PhoneNumber string    `bson:"phoneNumber" json:"phoneNumber"`
+	Email       string    `bson:"email" json:"email"`
+}
+
+func (s *UserService) Update(ctx context.Context, userID primitive.ObjectID, req UpdateProfile) (*model.User, error) {
+
+	if err := s.userRepo.UpdateProfile(ctx, userID, req.FirstName, req.LastName, req.Gender, req.Nationality, req.PhoneNumber, req.Email, req.DateOfBirth); err != nil {
+		return nil, fmt.Errorf("updating user: %w", err)
+	}
+
+	return &model.User{
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Gender:      req.Gender,
+		DateOfBirth: req.DateOfBirth,
+		Nationality: req.Nationality,
+		PhoneNumber: req.PhoneNumber,
+		Email:       req.Email,
+	}, nil
+}
