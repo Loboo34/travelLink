@@ -15,6 +15,7 @@ import (
 	handlers_admin "github.com/Loboo34/travel/handlers/Admin"
 	"github.com/Loboo34/travel/middleware"
 	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/payment"
 	"github.com/Loboo34/travel/repository"
 	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
@@ -85,6 +86,10 @@ func main() {
 	flightService := service.NewFlightService(flightRepo)
 	flightHandler := handlers_admin.NewFlightHandler(flightService)
 
+	if err := repository.CreateFlightIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+
 	accommodatioRepo := repository.NewAccommodationRepo(db)
 	accommodationService := service.NewAccommodationService(accommodatioRepo)
 	accommodationHandler := handlers_admin.NewAccommodationHandler(accommodationService)
@@ -97,13 +102,37 @@ func main() {
 	packageService := service.NewPackageService(packageRepo)
 	packageHandler := handlers_admin.NewPackageHandler(packageService)
 
+	//booking repos
+	flightBookingRepo := repository.NewFlightBookingRepo(db)
+	accommodationBookingRepo := repository.NewAccommodationBookingRepo(db)
+	activityBookingRepo := repository.NewActivityBookingRepo(db)
+	packageBookingRepo := repository.NewPackageBookingRepo(db)
+
+	//booking services
+	flightBookingService := service.NewFlightBookingService(flightRepo, flightBookingRepo, payment.NewStripeProvider())
+	accommodationBookingService := service.NewAccommodationBookingService(repository.NewAccommodationSearchRepo(db), accommodationBookingRepo, payment.NewStripeProvider())
+	activityBookingService := service.NewActivityBookingService(activityRepo, activityBookingRepo, payment.NewStripeProvider())
+	packageBookingService := service.NewPackageBookingService(flightBookingRepo, accommodationBookingRepo, repository.NewAccommodationSearchRepo(db), activityBookingRepo, packageBookingRepo, payment.NewStripeProvider())
+
+	//booking handlers
+	flightBookingHandler := handlers.NewFlightBookingHandler(flightBookingService)
+	accommodationBookingHandler := handlers.NewAccommodationBookingHandler(accommodationBookingService)
+	activityBookingHandler := handlers.NewActivityBookingHandler(activityBookingService)
+	packageBookingHandler := handlers.NewPackageHandler(packageBookingService)
+
+	//cancel handlers
+	cancelFlightHandler := handlers.NewCancelHandler(flightBookingService)
+	cancelAccommodationHandler := handlers.NewCancelAccommodationBookingHandler(accommodationBookingService)
+	cancelActivityHandler := handlers.NewCancelActivityBooking(activityBookingService)
+
 	//Routes
 
 	//auth
 	r.HandleFunc("/auth/register", userHandler.Register)
 	r.HandleFunc("/auth/login", userHandler.Login)
 	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
-	r.Handle("/user/profile", user(http.HandlerFunc(userHandler.UpdateProfile)) )
+	r.Handle("/user/profile", user(http.HandlerFunc(userHandler.UpdateProfile)))
+	r.Handle("/user/password", user(http.HandlerFunc(userHandler.ChangePassword)))
 
 	//admin
 	admin := auth.RequireAdmin(jwtManager)
@@ -140,7 +169,6 @@ func main() {
 	r.Handle("/package/status/{packageID}", admin(http.HandlerFunc(packageHandler.SetActivePackage)))
 	r.Handle("/package/delete/{packageID}", admin(http.HandlerFunc(packageHandler.DeletePackage)))
 
-
 	//user
 	//fetch
 	r.HandleFunc("/flights", flightHandler.GetFlights)
@@ -163,6 +191,20 @@ func main() {
 	//search
 
 	//booking
+	//flight
+	r.Handle("/flight/book", user(http.HandlerFunc(flightBookingHandler.FLightBooking)))
+	r.Handle("/flight/cancel", user(http.HandlerFunc(cancelFlightHandler.Cancel)))
+
+	//accommodation
+	r.Handle("/accommodation/book", user(http.HandlerFunc(accommodationBookingHandler.AccommodationBooking)))
+	r.Handle("/accommodation/cancel", user(http.HandlerFunc(cancelAccommodationHandler.Cancel)))
+
+	//activity
+	r.Handle("/activity/book", user(http.HandlerFunc(activityBookingHandler.ActivityBooking)))
+	r.Handle("/activity/cancel", user(http.HandlerFunc(cancelActivityHandler.Cancel)))
+
+	//package
+	r.Handle("/package/book", user(http.HandlerFunc(packageBookingHandler.PackageBooking)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

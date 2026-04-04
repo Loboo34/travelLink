@@ -66,17 +66,17 @@ func (r *UserRepo) GetUser(ctx context.Context, userID primitive.ObjectID) (*mod
 
 func (r *UserRepo) UpdateProfile(ctx context.Context, userID primitive.ObjectID, firstName, lastName, gender, nationality, phoneNuber, email string, dateOfBirth time.Time) error {
 
-	var user model.User
-	if err := r.db.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user); err != nil {
-		return fmt.Errorf("getting user")
-	}
+	// var user model.User
+	// if err := r.db.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user); err != nil {
+	// 	return fmt.Errorf("getting user")
+	// }
 
 	update := bson.M{
 		"$set": bson.M{
 			"firstName":    firstName,
 			"lastName":     lastName,
 			"gender":       gender,
-			"natioonality": nationality,
+			"nationality": nationality,
 			"phoneNumber":  phoneNuber,
 			"email":        email,
 			"dateOfBirth":  dateOfBirth,
@@ -84,12 +84,32 @@ func (r *UserRepo) UpdateProfile(ctx context.Context, userID primitive.ObjectID,
 		},
 	}
 
-	_, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	res, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
 	if err != nil {
 		return fmt.Errorf("updating profile")
+	}
+
+	if res.MatchedCount == 0 {
+		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
 	}
 
 	return nil
 }
 
 
+func (r *UserRepo) UpdatePassword(ctx context.Context, userID primitive.ObjectID, hashedPassword string) error {
+	update := bson.M{
+		"$set": bson.M{
+			"password":  hashedPassword,
+			"updatedAt": time.Now().UTC(),
+		},
+	}
+	res, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	if err != nil {
+		return fmt.Errorf("updating password: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
+	}
+	return nil
+}

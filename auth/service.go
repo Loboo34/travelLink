@@ -155,13 +155,42 @@ func (s *UserService) Update(ctx context.Context, userID primitive.ObjectID, req
 		return nil, fmt.Errorf("updating user: %w", err)
 	}
 
-	return &model.User{
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		Gender:      req.Gender,
-		DateOfBirth: req.DateOfBirth,
-		Nationality: req.Nationality,
-		PhoneNumber: req.PhoneNumber,
-		Email:       req.Email,
-	}, nil
+updated, err := s.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("fetching updated user: %w", err)
+	}
+	return updated, nil
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+}
+
+func (s *UserService) ChangePassword(ctx context.Context, userID primitive.ObjectID, req ChangePasswordRequest) error {
+	if req.CurrentPassword == "" {
+		return &model.ValidationError{Message: "current password is required"}
+	}
+	if len(req.NewPassword) < 8 {
+		return &model.ValidationError{Message: "new password must be at least 8 characters"}
+	}
+	if req.CurrentPassword == req.NewPassword {
+		return &model.ValidationError{Message: "new password must differ from current password"}
+	}
+
+	user, err := s.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return err 
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
+		return &model.AuthError{Message: "current password is incorrect"}
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("hashing password: %w", err)
+	}
+
+	return s.userRepo.UpdatePassword(ctx, userID, string(hash))
 }
