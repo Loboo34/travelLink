@@ -47,6 +47,7 @@ func (h *FlightBookingHandler) FLightBooking(w http.ResponseWriter, r *http.Requ
 	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
 
+
 // book accommodation
 type AccommodationBookingHandler struct {
 	bookingService *service.AccommodationBookingService
@@ -206,10 +207,10 @@ func (h *CancelFlightBooking) Cancel(w http.ResponseWriter, r *http.Request){
 }
 
 type CancelAccommodationBookingHandler struct{
-	cancelService *service.FlightBookingService
+	cancelService *service.AccommodationBookingService
 }
 
-func NewCancelAccommodationBookingHandler(cancelService *service.FlightBookingService) *CancelAccommodationBookingHandler{
+func NewCancelAccommodationBookingHandler(cancelService *service.AccommodationBookingService) *CancelAccommodationBookingHandler{
 	return &CancelAccommodationBookingHandler{cancelService: cancelService}
 }
 
@@ -243,10 +244,10 @@ func (h *CancelAccommodationBookingHandler) Cancel(w http.ResponseWriter, r *htt
 }
 
 type CancelActivityBooking struct{
-	cancelService *service.FlightBookingService
+	cancelService *service.ActivityBookingService
 }
 
-func NewCancelActivityBooking(cancelService *service.FlightBookingService) *CancelActivityBooking{
+func NewCancelActivityBooking(cancelService *service.ActivityBookingService) *CancelActivityBooking{
 	return &CancelActivityBooking{cancelService: cancelService}
 }
 

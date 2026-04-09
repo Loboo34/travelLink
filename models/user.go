@@ -32,6 +32,7 @@ type User struct {
 }
 
 
+
 type ID struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	User     User               `bson:"user" json:"user"`
@@ -65,3 +66,4 @@ type BookingHistory struct {
 	Amount  float64            `bson:"amount" json:"amount"`
 	Details string             `bson:"details" json:"details"`
 }
+

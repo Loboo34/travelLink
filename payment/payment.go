@@ -32,6 +32,10 @@ func NewStubProvider() *StubProvider {
     return &StubProvider{}
 }
 
+func NewStripeProvider() Provider {
+    return NewStubProvider()
+}
+
 func (p *StubProvider) Charge(ctx context.Context, req ChargeRequest) (*PaymentResult, error) {
     
     return &PaymentResult{
