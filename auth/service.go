@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,9 +29,35 @@ type RegisterRequest struct {
 	Email     string `json:"email"`
 }
 
+func (r *RegisterRequest) Validate() error {
+	if r.FirstName == "" {
+		return errors.New("first name required")
+	}
+	if r.LastName == "" {
+		return errors.New("first name required")
+	}
+	if len(r.Password) < 8 {
+		return errors.New("first name required")
+	}
+	if r.Email == "" {
+		return errors.New("first name required")
+	}
+	return nil
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+func (r *LoginRequest) Validate() error {
+	if r.Password == "" {
+		return errors.New("first name required")
+	}
+	if r.Email == "" {
+		return errors.New("first name required")
+	}
+	return nil
 }
 
 type AuthResult struct {
@@ -39,14 +66,10 @@ type AuthResult struct {
 }
 
 func (s *UserService) Register(ctx context.Context, req RegisterRequest) (*AuthResult, error) {
-	if req.Email == "" {
-		return nil, &model.ValidationError{Message: "email is required"}
-	}
 
-	if len(req.Password) < 8 {
-		return nil, &model.ValidationError{Message: "password must be at least 8 characters"}
+	if err := req.Validate(); err != nil {
+		return nil, &model.ValidationError{Message: err.Error()}
 	}
-
 	existing, err := s.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("checking email: %w", err)
@@ -94,12 +117,9 @@ func (s *UserService) Register(ctx context.Context, req RegisterRequest) (*AuthR
 }
 
 func (s *UserService) Login(ctx context.Context, req LoginRequest) (*AuthResult, error) {
-	if req.Email == "" {
-		return nil, &model.ValidationError{Message: "email is required"}
-	}
 
-	if req.Password == "" {
-		return nil, &model.ValidationError{Message: "password is required"}
+	if err := req.Validate(); err != nil {
+		return nil, &model.ValidationError{Message: err.Error()}
 	}
 
 	user, err := s.userRepo.FindByEmail(ctx, req.Email)
@@ -149,13 +169,38 @@ type UpdateProfile struct {
 	Email       string    `bson:"email" json:"email"`
 }
 
+func (r *UpdateProfile) Validate() error {
+	if r.FirstName == "" {
+		return errors.New("first name required")
+	}
+	if r.LastName == "" {
+		return errors.New("first name required")
+	}
+	if r.Gender == "" {
+		return errors.New("gender required")
+	}
+	if r.Nationality == "" {
+		return errors.New("nationality required")
+	}
+
+	if len(r.PhoneNumber) < 10 {
+		return errors.New("phone number is less than 10 numbers")
+	}
+
+	return nil
+}
+
 func (s *UserService) Update(ctx context.Context, userID primitive.ObjectID, req UpdateProfile) (*model.User, error) {
+
+	if err := req.Validate(); err != nil {
+		return nil, &model.ValidationError{Message: err.Error()}
+	}
 
 	if err := s.userRepo.UpdateProfile(ctx, userID, req.FirstName, req.LastName, req.Gender, req.Nationality, req.PhoneNumber, req.Email, req.DateOfBirth); err != nil {
 		return nil, fmt.Errorf("updating user: %w", err)
 	}
 
-updated, err := s.userRepo.GetUser(ctx, userID)
+	updated, err := s.userRepo.GetUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("fetching updated user: %w", err)
 	}
@@ -180,7 +225,7 @@ func (s *UserService) ChangePassword(ctx context.Context, userID primitive.Objec
 
 	user, err := s.userRepo.GetUser(ctx, userID)
 	if err != nil {
-		return err 
+		return err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
@@ -193,4 +238,17 @@ func (s *UserService) ChangePassword(ctx context.Context, userID primitive.Objec
 	}
 
 	return s.userRepo.UpdatePassword(ctx, userID, string(hash))
+}
+
+func (s *UserService) ProfilePic(ctx context.Context, userID primitive.ObjectID, image string) error {
+
+	_, err := s.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if err := s.userRepo.ProfilePic(ctx, userID, image); err != nil {
+		return fmt.Errorf("updating profile picture")
+	}
+
+	return nil
 }

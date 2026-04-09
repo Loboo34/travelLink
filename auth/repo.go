@@ -73,14 +73,14 @@ func (r *UserRepo) UpdateProfile(ctx context.Context, userID primitive.ObjectID,
 
 	update := bson.M{
 		"$set": bson.M{
-			"firstName":    firstName,
-			"lastName":     lastName,
-			"gender":       gender,
+			"firstName":   firstName,
+			"lastName":    lastName,
+			"gender":      gender,
 			"nationality": nationality,
-			"phoneNumber":  phoneNuber,
-			"email":        email,
-			"dateOfBirth":  dateOfBirth,
-			"updatedAt":    time.Now(),
+			"phoneNumber": phoneNuber,
+			"email":       email,
+			"dateOfBirth": dateOfBirth,
+			"updatedAt":   time.Now(),
 		},
 	}
 
@@ -96,7 +96,6 @@ func (r *UserRepo) UpdateProfile(ctx context.Context, userID primitive.ObjectID,
 	return nil
 }
 
-
 func (r *UserRepo) UpdatePassword(ctx context.Context, userID primitive.ObjectID, hashedPassword string) error {
 	update := bson.M{
 		"$set": bson.M{
@@ -111,5 +110,24 @@ func (r *UserRepo) UpdatePassword(ctx context.Context, userID primitive.ObjectID
 	if res.MatchedCount == 0 {
 		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
 	}
+	return nil
+}
+
+func (r *UserRepo) ProfilePic(ctx context.Context, userID primitive.ObjectID, image string) error {
+	update := bson.M{
+		"$set": bson.M{
+			"profilePic": image,
+		},
+	}
+
+	res, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	if err != nil {
+		return fmt.Errorf("updating profile picture")
+	}
+
+	if res.MatchedCount == 0 {
+		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
+	}
+
 	return nil
 }
