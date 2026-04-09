@@ -90,7 +90,7 @@ func (r *ActivityBookingRepo) UpdateBooking(ctx context.Context, bookingID primi
 	return nil
 }
 
-func (r *ActivityBookingRepo) GetBooking(ctx context.Context, bookingID primitive.ObjectID) (*model.ActivityBooking, error) {
+func (r *ActivityBookingRepo) Booking(ctx context.Context, bookingID primitive.ObjectID) (*model.ActivityBooking, error) {
 	var booking model.ActivityBooking
 
 	err := r.db.Collection("activity_booking").FindOne(ctx, bson.M{"_id": bookingID}).Decode(&booking)
@@ -102,6 +102,24 @@ func (r *ActivityBookingRepo) GetBooking(ctx context.Context, bookingID primitiv
 	}
 
 	return &booking, nil
+}
+
+
+
+func (r *ActivityBookingRepo) Bookings(ctx context.Context)([]model.ActivityBooking, error){
+	cursor, err := r.db.Collection("activity_booking").Find(ctx, bson.M{})
+	if err != nil{
+		return nil, fmt.Errorf("getting activity bookings")
+	}
+
+	defer cursor.Close(ctx)
+
+	var bookings []model.ActivityBooking
+	if err := cursor.All(ctx, &bookings); err != nil{
+		return nil, fmt.Errorf("deccding activity bookings")
+	}
+
+	return bookings, nil
 }
 
 func (r *ActivityBookingRepo) CancelBooking(ctx context.Context, bookingID primitive.ObjectID, reason string) error {

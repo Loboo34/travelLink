@@ -8,6 +8,7 @@ import (
 	model "github.com/Loboo34/travel/models"
 	"github.com/Loboo34/travel/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -29,13 +30,14 @@ type ActivityFilter struct {
 	SortBy       model.ActivitySortOptions
 	Page         int
 	PageSize     int
+	CandidateIDs primitive.ObjectID
 }
 
 func (r *ActivitySearchRepo) SearchActivity(ctx context.Context, a *ActivityFilter) ([]model.ActivitySearchResult, error) {
 
 	totalParticipants := a.Participants.Adults + a.Participants.Children + a.Participants.Infants
 	pipeline := mongo.Pipeline{
-		stageMatchTimeSlot(a.Date, totalParticipants),
+		stageMatchTimeSlot(a.Date, totalParticipants, a.CandidateIDs),
 		stageLookUpActivities(),
 		stageUnwindActivity(),
 		stageMatchCategories(a.Location, a.Category, a.ForAllAges, a.Duration),
@@ -61,20 +63,25 @@ func (r *ActivitySearchRepo) SearchActivity(ctx context.Context, a *ActivityFilt
 	return activities, nil
 }
 
-func stageMatchTimeSlot(date time.Time, participants int) bson.D {
+func stageMatchTimeSlot(date time.Time, participants int, activityIDs primitive.ObjectID) bson.D {
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
-	return bson.D{{Key: "$match", Value: bson.M{
+	filter := bson.M{
 		"isActive": true,
 		"date":     bson.M{"$gte": startOfDay, "$lt": endOfDay},
 		"$expr": bson.M{
-			"$sgt": []interface{}{
-				bson.M{
-					"$subtract": []interface{}{"totalSlots", "reservedSlots"}},
+			"$gt": []interface{}{
+				bson.M{"$subtract": []interface{}{"$totalSlots", "$reservedSlots"}},
 				0,
 			},
 		},
-	}}}
+	}
+
+	if len(activityIDs) > 0 {
+		filter["activityID"] = bson.M{"$in": activityIDs}
+	}
+
+	return bson.D{{Key: "$match", Value: filter}}
 }
 
 func stageLookUpActivities() bson.D {
@@ -96,32 +103,20 @@ func stageMatchCategories(location model.LocationSearch, category model.Activity
 		"activityDoc.isActive": true,
 	}
 
-	if location.Longitude != 0 || location.Latitude != 0 {
-		filter["activityDoc.location"] = bson.M{
-			"$nearSphere": bson.M{
-				"$geometry": bson.M{
-					"type":        "Point",
-					"coordinates": []float64{location.Longitude, location.Latitude},
-				},
-				"$maxDistance": location.RadiusKm * 1000,
-			},
-		}
-	} else if location.City != "" {
-		filter["activityDoc.city"] = bson.M{"$regex": location.City, "$options": "i"}
+	if location.City != "" {
+		filter["accommodationDocs.address.city"] = bson.M{"$regex": location.City, "$options": "i"}
 		if location.Country != "" {
-			filter["activityDoc.country"] = bson.M{"$regex": location.Country, "$options": "i"}
+			filter["accommodationDocs.address.country"] = bson.M{"$regex": location.Country, "$options": "i"}
 		}
-
 	}
 
-	 if category != "" {
-        filter["activityDoc.categories"] = bson.M{"$in": []model.ActivityCategory{category}}
-    }
+	if category != "" {
+		filter["activityDoc.categories"] = bson.M{"$in": []model.ActivityCategory{category}}
+	}
 
 	if maxDuration > 0 {
-        filter["activityDoc.durationMinutes"] = bson.M{"$lte": maxDuration}
-    }
-
+		filter["activityDoc.durationMinutes"] = bson.M{"$lte": maxDuration}
+	}
 
 	return bson.D{{Key: "$match", Value: filter}}
 }

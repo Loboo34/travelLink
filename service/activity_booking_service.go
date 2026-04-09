@@ -134,7 +134,7 @@ func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.Ob
 		return nil, &model.ValidationError{Message: err.Error()}
 	}
 
-	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
+	booking, err := s.bookingRepo.Booking(ctx, req.BookingID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting activity: %w", err)
 	}
@@ -170,4 +170,22 @@ func (s *ActivityBookingService) Cancel(ctx context.Context, userID primitive.Ob
 		RefundStatus: model.RefundStatusPending,
 	}, nil
 
+}
+
+func (s *ActivityBookingService) Booking(ctx context.Context, bookingID primitive.ObjectID)(*model.ActivityBooking, error){
+	booking, err := s.bookingRepo.Booking(ctx, bookingID)
+	if err != nil{
+		return nil, fmt.Errorf("getting actity booking: %w", err)
+	}
+
+	return booking, nil 
+}
+
+func (s *ActivityBookingService) Bookings(ctx context.Context)(*[]model.ActivityBooking, error){
+	bookings, err := s.bookingRepo.Bookings(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting activity bookings: %w", err)
+	}
+
+	return  &bookings, nil 
 }

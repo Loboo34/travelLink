@@ -15,7 +15,7 @@ type AccommodationBookingRepo struct {
 	db *mongo.Database
 }
 
-func NewAccommodationBookigRepo(db *mongo.Database) *AccommodationBookingRepo {
+func NewAccommodationBookingRepo(db *mongo.Database) *AccommodationBookingRepo {
 	return &AccommodationBookingRepo{db: db}
 }
 
@@ -138,4 +138,30 @@ func (r *AccommodationBookingRepo) Cancel(ctx context.Context, bookingID primiti
 	}
 	return nil
 
+}
+
+func (r *AccommodationBookingRepo) Booking(ctx context.Context, bookingID primitive.ObjectID)(*model.AccommodationBooking, error){
+	var booking model.AccommodationBooking
+
+	if err := r.db.Collection("accommodation_booking").FindOne(ctx, bson.M{"_id": bookingID}).Decode(&booking); err != nil{
+		return nil, fmt.Errorf("getting accommodation booking: %w", err)
+	}
+
+	return &booking, nil 
+}
+
+func (r *AccommodationBookingRepo) Bookings(ctx context.Context)([]model.AccommodationBooking, error){
+	cursor, err := r.db.Collection("accommodation_booking").Find(ctx, bson.M{})
+	if err != nil{
+		return nil, fmt.Errorf("getting accommodation bookings")
+	}
+
+	defer cursor.Close(ctx)
+
+	var bookings []model.AccommodationBooking
+	if err := cursor.All(ctx, &bookings); err != nil{
+		return nil, fmt.Errorf("deccding accommodation bookings")
+	}
+
+	return bookings, nil
 }

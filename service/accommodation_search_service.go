@@ -9,6 +9,8 @@ import (
 	"github.com/Loboo34/travel/repository"
 )
 
+
+
 type AccommodationSearchService struct {
 	AccommodationRepo *repository.AccommodationSearchRepo
 }
@@ -27,6 +29,21 @@ func NewAccommodationSearchService(repo *repository.AccommodationSearchRepo) *Ac
 	return &AccommodationSearchService{
 		AccommodationRepo: repo,
 	}
+}
+func (s *AccommodationSearchService) SearchWithFilter(ctx context.Context, f *repository.AccommodationFilter) ([]model.AccommodationSearchResult, error) {
+
+	if f.Location.Latitude != 0 || f.Location.Longitude != 0 {
+		ids, err := s.AccommodationRepo.FindIDsNearLocation(ctx, f.Location.Latitude, f.Location.Longitude, f.Location.RadiusKm)
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) == 0 {
+			return []model.AccommodationSearchResult{}, nil
+		}
+		f.CandidateIDs = ids
+	}
+
+	return s.AccommodationRepo.SearchAccommodationAvailability(ctx, f)
 }
 
 func (s *AccommodationSearchService) Search(ctx context.Context, params model.AccommodationSearch) (*AccommodationSearchResponse, error) {
@@ -48,7 +65,7 @@ func (s *AccommodationSearchService) Search(ctx context.Context, params model.Ac
 		PageSize:     params.PageSize,
 	}
 
-	results, err := s.AccommodationRepo.SearchAccommodationAvailability(ctx, &filter)
+	results, err := s.SearchWithFilter(ctx, &filter)
 	if err != nil {
 		return nil, fmt.Errorf("accommodation search: %w", err)
 	}

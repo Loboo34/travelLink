@@ -14,12 +14,12 @@ import (
 )
 
 type FlightBookingService struct {
-	flightRepo  *repository.FlightSearchRepo
+	flightRepo  *repository.FlightRepo
 	bookingRepo *repository.FlightBookingRepo
 	payment     payment.Provider
 }
 
-func NewFlightBookingService(flightRepo *repository.FlightSearchRepo,
+func NewFlightBookingService(flightRepo *repository.FlightRepo,
 	bookingRepo *repository.FlightBookingRepo,
 	payment payment.Provider) *FlightBookingService {
 	return &FlightBookingService{
@@ -147,7 +147,7 @@ func (s *FlightBookingService) Cancel(ctx context.Context, userID primitive.Obje
 		return nil, &model.ValidationError{Message: err.Error()}
 	}
 
-	booking, err := s.bookingRepo.GetBooking(ctx, req.BookingID)
+	booking, err := s.bookingRepo.Booking(ctx, req.BookingID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting flight: %w", err)
 	}
@@ -187,4 +187,22 @@ func (s *FlightBookingService) Cancel(ctx context.Context, userID primitive.Obje
 		RefundStatus: model.RefundStatusPending,
 	}, nil
 
+}
+
+func (s *FlightBookingService) Booking(ctx context.Context, bookingID primitive.ObjectID)(*model.FlightBooking, error){
+	booking, err := s.bookingRepo.Booking(ctx, bookingID)
+	if err != nil{
+		return nil, fmt.Errorf("getting flight booking")
+	}
+
+	return booking, nil 
+}
+
+func (s *FlightBookingService) Bookings(ctx context.Context)(*[]model.FlightBooking, error){
+	bookings, err := s.bookingRepo.Bookings(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting flight booings: %w", err)
+	}
+
+	return &bookings, nil
 }

@@ -31,7 +31,7 @@ func (r *ActivityRepo) Add(ctx context.Context, activity *model.Activity) error 
 func (r *ActivityRepo) Update(ctx context.Context, activityID primitive.ObjectID, title string, duration int, inclusion, exclusion []string, point *model.MeetingPoint) error {
 	var activity model.Activity
 	if err := r.db.Collection("activities").FindOne(ctx, bson.M{"_id": activityID}).Decode(&activity); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "activity", ID: activityID.Hex()}
 	}
 
 	update := bson.M{
@@ -56,7 +56,7 @@ func (r *ActivityRepo) Update(ctx context.Context, activityID primitive.ObjectID
 func (r *ActivityRepo) SetActive(ctx context.Context, activityID primitive.ObjectID, isActive bool) error {
 	var activity model.Activity
 	if err := r.db.Collection("activities").FindOne(ctx, bson.M{"_id": activityID}).Decode(&activity); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "Activity", ID: activityID.Hex()}
 	}
 
 	update := bson.M{"$set": bson.M{"isActive": isActive, "updatedAt": time.Now()}}
@@ -93,7 +93,7 @@ func (r *ActivityRepo) Timeslot(ctx context.Context, timeSlot *model.ActivityTim
 func (r *ActivityRepo) IsActive(ctx context.Context, timeslotID primitive.ObjectID, isActive bool) error {
 	var activity model.ActivityTimeslot
 	if err := r.db.Collection("activity_timeslot").FindOne(ctx, bson.M{"_id": timeslotID}).Decode(&activity); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "activity timeslot", ID: timeslotID.Hex()}
 	}
 
 	update := bson.M{
@@ -111,10 +111,10 @@ func (r *ActivityRepo) IsActive(ctx context.Context, timeslotID primitive.Object
 	return nil
 }
 
-func (r *ActivityRepo) UpdateTimeslot(ctx context.Context, timeSlotID primitive.ObjectID, startTime time.Time, duration, totalSlots, groupSize int, price int64) error {
+func (r *ActivityRepo) UpdateTimeslot(ctx context.Context, timeslotID primitive.ObjectID, startTime time.Time, duration, totalSlots, groupSize int, price int64) error {
 	var activity model.ActivityTimeslot
-	if err := r.db.Collection("activity_timeslot").FindOne(ctx, bson.M{"_id": timeSlotID}).Decode(&activity); err != nil {
-		return mongo.ErrNoDocuments
+	if err := r.db.Collection("activity_timeslot").FindOne(ctx, bson.M{"_id": timeslotID}).Decode(&activity); err != nil {
+		return &model.NotFoundError{Resource: "activity timeslot", ID: timeslotID.Hex()}
 	}
 
 	update := bson.M{
@@ -128,7 +128,7 @@ func (r *ActivityRepo) UpdateTimeslot(ctx context.Context, timeSlotID primitive.
 		},
 	}
 
-	_, err := r.db.Collection("activity_timeslot").UpdateOne(ctx, bson.M{"_id": timeSlotID}, update)
+	_, err := r.db.Collection("activity_timeslot").UpdateOne(ctx, bson.M{"_id": timeslotID}, update)
 	if err != nil {
 		return fmt.Errorf("updating activity: %w", err)
 	}

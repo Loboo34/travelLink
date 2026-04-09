@@ -87,7 +87,7 @@ func (r *FlightBookingRepo) UpdateBooking(ctx context.Context, bookingID primiti
 	return nil 
 }
 
-func (r *FlightBookingRepo) GetBooking(ctx context.Context, bookingID primitive.ObjectID) (*model.FlightBooking, error) {
+func (r *FlightBookingRepo) Booking(ctx context.Context, bookingID primitive.ObjectID) (*model.FlightBooking, error) {
 	var booking model.FlightBooking
 
 	err := r.db.Collection("flight_booking").FindOne(ctx, bson.M{"_id": bookingID}).Decode(&booking)
@@ -101,6 +101,21 @@ func (r *FlightBookingRepo) GetBooking(ctx context.Context, bookingID primitive.
 	return &booking, nil
 }
 
+func (r *FlightBookingRepo) Bookings(ctx context.Context)([]model.FlightBooking, error){
+	cursor, err := r.db.Collection("flight_booking").Find(ctx, bson.M{})
+	if err != nil{
+		return nil, fmt.Errorf("getting flight bookings")
+	}
+
+	defer cursor.Close(ctx)
+
+	var bookings []model.FlightBooking
+	if err := cursor.All(ctx, &bookings); err != nil{
+		return nil, fmt.Errorf("deccding flight bookings")
+	}
+
+	return bookings, nil
+}
 func (r *FlightBookingRepo) Cancel(ctx context.Context, bookingID primitive.ObjectID, reason string) error {
 
 	update := bson.M{

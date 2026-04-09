@@ -178,3 +178,21 @@ func (s *AccommodationBookingService) Cancel(ctx context.Context, userID primiti
 	}, nil
 
 }
+
+func (s *AccommodationBookingService) Booking(ctx context.Context, bookingID primitive.ObjectID)(*model.AccommodationBooking, error){
+	booking, err := s.bookingRepo.GetBooking(ctx, bookingID)
+	if err != nil{
+		return nil, fmt.Errorf("getting accommodation booking")
+	}
+
+	return booking, nil 
+}
+
+func (s *AccommodationBookingService) Bookings(ctx context.Context) (*[]model.AccommodationBooking, error){
+	bookings, err := s.bookingRepo.Bookings(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("getting accommodation bookings: %w", err)
+	}
+
+	return &bookings, nil 
+}

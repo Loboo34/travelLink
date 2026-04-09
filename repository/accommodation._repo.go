@@ -32,7 +32,7 @@ func (r *AccommodationRepo) Add(ctx context.Context, accommodation *model.Accomm
 func (r *AccommodationRepo) Update(ctx context.Context, accommodationID primitive.ObjectID, name, description string, amenities, images []string) error {
 	var accom model.Accommodation
 	if err := r.db.Collection("accommodations").FindOne(ctx, bson.M{"_id": accommodationID}).Decode(&accom); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "accommodation", ID : accommodationID.Hex()}
 	}
 
 	update := bson.M{
@@ -60,7 +60,7 @@ func (r *AccommodationRepo) Delete(ctx context.Context, accommodationID primitiv
 	}
 
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("not found: %w", err)
+		return &model.NotFoundError{Resource: "accommodation", ID : accommodationID.Hex()}
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func (r *AccommodationRepo) Remove(ctx context.Context, availabilityID primitive
 	}
 
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("not found: %w", err)
+		return &model.NotFoundError{Resource: "accommodation availability", ID : availabilityID.Hex()}
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (r *AccommodationRepo) GetAvailability(ctx context.Context, availabilityID 
 	var accoms model.AccommodationAvailability
 	if err := r.db.Collection("accommodation_Availability").FindOne(ctx, bson.M{"_id": availabilityID}).Decode(&accoms); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("accommodation not available: %w", err)
+			return nil, &model.NotFoundError{Resource: "accommodation availability", ID : availabilityID.Hex()}
 		}
 		return nil, fmt.Errorf("getting available accommodations")
 
@@ -138,7 +138,7 @@ func (r *AccommodationRepo) GetAccomodation(ctx context.Context, accommodationID
 	_, err := r.db.Collection("accommodations").Find(ctx, bson.M{"_id": accommodationID})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("accommodation not available: %w", err)
+			return nil, &model.NotFoundError{Resource: "accommodation ", ID : accommodationID.Hex()}
 		}
 		return nil, fmt.Errorf("getting  accommodations")
 	}

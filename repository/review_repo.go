@@ -92,12 +92,11 @@ func (r *ReviewRepo) Delete(ctx context.Context, reviewID primitive.ObjectID) er
 	return nil
 }
 
-// UpdateTargetRating atomically recalculates and sets rating on the parent document.
-// collection is e.g. "accommodations", "activities", "flights", "packages"
+
 func (r *ReviewRepo) UpdateTargetRating(ctx context.Context, collection string, referenceID primitive.ObjectID, newRating int, delta int) error {
 	update := bson.M{
 		"$inc": bson.M{
-			"ratingSum":   newRating * delta, // delta: +1 on create, -1 on delete
+			"ratingSum":   newRating * delta, 
 			"reviewCount": delta,
 		},
 	}

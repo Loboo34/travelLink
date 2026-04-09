@@ -80,7 +80,7 @@ func (s *AccommodationService) Add(ctx context.Context, req AccommodationRequest
 	}
 
 	if err := s.accommodationRepo.Add(ctx, accommodation); err != nil {
-		return nil, fmt.Errorf("acceing accommodation: %w", err)
+		return nil, err
 	}
 
 	return &AccommodationResult{
@@ -93,6 +93,11 @@ func (s *AccommodationService) Add(ctx context.Context, req AccommodationRequest
 }
 
 func (s *AccommodationService) Update(ctx context.Context, accommodationId primitive.ObjectID, req AccommodationUpdate) (*AccommodationResult, error) {
+
+	_, err := s.accommodationRepo.GetAccomodation(ctx, accommodationId)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.accommodationRepo.Update(ctx, accommodationId, req.Name, req.Description, req.Amenities, req.Images); err != nil {
 		return nil, fmt.Errorf("updating accommodtion: %w ", err)
 	}
@@ -105,6 +110,11 @@ func (s *AccommodationService) Update(ctx context.Context, accommodationId primi
 }
 
 func (s *AccommodationService) Delete(ctx context.Context, accommodationID primitive.ObjectID) error {
+
+		_, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID); 
+		if err != nil{
+		return  err
+	}
 	if err := s.accommodationRepo.Delete(ctx, accommodationID); err != nil {
 		return fmt.Errorf("deleting accommodation: %w", err)
 	}
@@ -140,6 +150,11 @@ func (s *AccommodationService) Availability(ctx context.Context, req Availabilit
 }
 
 func (s *AccommodationService) IsActive(ctx context.Context, availabilityID primitive.ObjectID, status bool) error {
+
+	_, err := s.accommodationRepo.GetAvailability(ctx, availabilityID)
+	if err != nil {
+		return err
+	}
 	if err := s.accommodationRepo.IsActive(ctx, availabilityID, status); err != nil {
 		return fmt.Errorf("updating status: %w", err)
 	}
@@ -148,8 +163,12 @@ func (s *AccommodationService) IsActive(ctx context.Context, availabilityID prim
 
 }
 
-func (s *AccommodationService) Remove(ctx context.Context, accommodationID primitive.ObjectID) error {
-	if err := s.accommodationRepo.Remove(ctx, accommodationID); err != nil {
+func (s *AccommodationService) Remove(ctx context.Context, availabilityID primitive.ObjectID) error {
+	_, err := s.accommodationRepo.GetAvailability(ctx, availabilityID)
+	if err != nil {
+		return err
+	}
+	if err := s.accommodationRepo.Remove(ctx, availabilityID); err != nil {
 		return fmt.Errorf("deleting accommodation: %w", err)
 	}
 

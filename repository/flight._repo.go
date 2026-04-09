@@ -33,7 +33,7 @@ func (r *FlightRepo) Update(ctx context.Context, flightID primitive.ObjectID, de
 	var flight model.Flight
 
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "fligh", ID: flightID.Hex()}
 	}
 
 	update := bson.M{
@@ -63,7 +63,7 @@ func (r *FlightRepo) UpdateStatus(ctx context.Context, flightID primitive.Object
 	var flight model.Flight
 
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "fligh", ID: flightID.Hex()}
 	}
 
 	update := bson.M{
@@ -87,7 +87,7 @@ func (r *FlightRepo) Delete(ctx context.Context, flightID primitive.ObjectID) er
 	err := r.db.Collection("flights").FindOneAndDelete(ctx, bson.M{"_id": flightID}).Decode(&flight)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("flight not found")
+			return &model.NotFoundError{Resource: "fligh", ID: flightID.Hex()}
 		}
 		return fmt.Errorf("deliting flight: %w", err)
 	}
@@ -108,7 +108,7 @@ func (r *FlightRepo) UpdateOffer(ctx context.Context, offerID primitive.ObjectID
 	var offer model.FlightOffer
 
 	if err := r.db.Collection("flight_offers").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "offer", ID: offerID.Hex()}
 	}
 
 	update := bson.M{
@@ -134,7 +134,7 @@ func (r *FlightRepo) IsActive(ctx context.Context, offerID primitive.ObjectID, i
 	var offer model.FlightOffer
 
 	if err := r.db.Collection("flight_offers").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
-		return mongo.ErrNoDocuments
+		return &model.NotFoundError{Resource: "offer", ID: offerID.Hex()}
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -170,7 +170,7 @@ func (r *FlightRepo) DeleteOffer(ctx context.Context, offerID primitive.ObjectID
 	}
 
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("not found: %w", err)
+		return &model.NotFoundError{Resource: "offer", ID: offerID.Hex()}
 	}
 
 	return nil
@@ -195,9 +195,9 @@ func (r *FlightRepo) GetFlight(ctx context.Context, flightID primitive.ObjectID)
 	var flight model.Flight
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": flightID}).Decode(&flight); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, mongo.ErrNoDocuments
+			return nil, &model.NotFoundError{Resource: "offer", ID: flightID.Hex()}
 		}
-		return nil, fmt.Errorf("fetching flight: %w", err)
+		return nil,  fmt.Errorf("getting flight ")
 	}
 
 	return &flight, nil
@@ -222,9 +222,9 @@ func (r *FlightRepo) GetOffer(ctx context.Context, offerID primitive.ObjectID) (
 	var offer model.FlightOffer
 	if err := r.db.Collection("flights").FindOne(ctx, bson.M{"_id": offerID}).Decode(&offer); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, mongo.ErrNoDocuments
+			return nil, &model.NotFoundError{Resource: "offer", ID: offerID.Hex()}
 		}
-		return nil, fmt.Errorf("fetching flight: %w", err)
+		return nil, fmt.Errorf("fetching flight offer: %w", err)
 	}
 
 	return &offer, nil

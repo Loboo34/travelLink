@@ -110,24 +110,35 @@ type UpdateReq struct {
 }
 
 func (s *FlightService) Update(ctx context.Context, flightID primitive.ObjectID, req UpdateReq) (*UpdateReq, error) {
-	err := s.FlightRepo.Update(ctx, flightID, req.ArrivalTime, req.DepartureTime, req.Stops)
+	_, err := s.FlightRepo.GetFlight(ctx, flightID)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.FlightRepo.Update(ctx, flightID, req.ArrivalTime, req.DepartureTime, req.Stops); err != nil {
 		return nil, fmt.Errorf("updating flight: %w", err)
 	}
 
 	return &UpdateReq{}, nil
 }
 
-func (s *FlightService) UpdateStatus(ctx context.Context, flightId primitive.ObjectID, status *model.FlightStatus) error {
-	if err := s.FlightRepo.UpdateStatus(ctx, flightId, status); err != nil {
+func (s *FlightService) UpdateStatus(ctx context.Context, flightID primitive.ObjectID, status *model.FlightStatus) error {
+	_, err := s.FlightRepo.GetFlight(ctx, flightID)
+	if err != nil {
+		return err
+	}
+	if err := s.FlightRepo.UpdateStatus(ctx, flightID, status); err != nil {
 		return fmt.Errorf("updating status: %w", err)
 	}
 
 	return nil
 }
 
-func (s *FlightService) DeleteFlight(ctx context.Context, flighID primitive.ObjectID) error {
-	if err := s.FlightRepo.Delete(ctx, flighID); err != nil {
+func (s *FlightService) DeleteFlight(ctx context.Context, flightID primitive.ObjectID) error {
+	_, err := s.FlightRepo.GetFlight(ctx, flightID)
+	if err != nil {
+		return err
+	}
+	if err := s.FlightRepo.Delete(ctx, flightID); err != nil {
 		return fmt.Errorf("deleting flight: %w", err)
 	}
 
@@ -135,16 +146,16 @@ func (s *FlightService) DeleteFlight(ctx context.Context, flighID primitive.Obje
 }
 
 type Offer struct {
-	FlightID          primitive.ObjectID     `json:"flightID"`
-	ProviderReference string                 `json:"providerReference"`
-	Provider          string                 `json:"provider"`
-	OneWay            bool                   `json:"oneway"`
-	Segments          []primitive.ObjectID   `json:"segments"`
-	PriceTotal        int64                  `json:"priceTotal"`
+	FlightID          primitive.ObjectID       `json:"flightID"`
+	ProviderReference string                   `json:"providerReference"`
+	Provider          string                   `json:"provider"`
+	OneWay            bool                     `json:"oneway"`
+	Segments          []primitive.ObjectID     `json:"segments"`
+	PriceTotal        int64                    `json:"priceTotal"`
 	BaggageAllowance  []model.BaggageAllowance `json:"baggageAllowance"`
-	LastTicketingDate *time.Time             `json:"lastTicketingDate"`
-	BookableSeats     int                    `json:"bookableSeats"`
-	ExpiresAt         *time.Time             `json:"expiresAt"`
+	LastTicketingDate *time.Time               `json:"lastTicketingDate"`
+	BookableSeats     int                      `json:"bookableSeats"`
+	ExpiresAt         *time.Time               `json:"expiresAt"`
 }
 
 func (s *FlightService) CreateOffer(ctx context.Context, req Offer) (*model.FlightOffer, error) {
@@ -185,7 +196,11 @@ type OfferUpdate struct {
 }
 
 func (s *FlightService) UpdateOffer(ctx context.Context, offerID primitive.ObjectID, req OfferUpdate) (*model.FlightOffer, error) {
-	if err := s.FlightRepo.UpdateOffer(ctx, offerID,  req.Price, req.BookableSeats, req.OneWay); err != nil {
+	_, err := s.FlightRepo.GetOffer(ctx, offerID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.FlightRepo.UpdateOffer(ctx, offerID, req.Price, req.BookableSeats, req.OneWay); err != nil {
 		return nil, fmt.Errorf("updating offer: %w", err)
 	}
 
@@ -193,8 +208,12 @@ func (s *FlightService) UpdateOffer(ctx context.Context, offerID primitive.Objec
 }
 
 func (s *FlightService) IsActive(ctx context.Context, offerID primitive.ObjectID, isActive bool) error {
-	err := s.FlightRepo.IsActive(ctx, offerID, isActive)
+	_, err := s.FlightRepo.GetOffer(ctx, offerID)
 	if err != nil {
+		return  err
+	}
+
+	if err := s.FlightRepo.IsActive(ctx, offerID, isActive); err != nil {
 		return fmt.Errorf("updating status: %w", err)
 	}
 
@@ -202,6 +221,10 @@ func (s *FlightService) IsActive(ctx context.Context, offerID primitive.ObjectID
 }
 
 func (s *FlightService) DeleteOffer(ctx context.Context, offerID primitive.ObjectID) error {
+	_, err := s.FlightRepo.GetOffer(ctx, offerID)
+	if err != nil {
+		return  err
+	}
 	if err := s.FlightRepo.DeleteOffer(ctx, offerID); err != nil {
 		return fmt.Errorf("deleting offer :%w", err)
 	}
@@ -219,30 +242,29 @@ func (s *FlightService) GetFlights(ctx context.Context) (*[]model.Flight, error)
 	return &flights, nil
 }
 
-func (s *FlightService) GetFlight(ctx context.Context, flightID primitive.ObjectID) (*model.Flight, error){
- flight, err := s.FlightRepo.GetFlight(ctx, flightID)
- if err != nil{
-	return nil, fmt.Errorf("getting flight: %w", err)
- }
+func (s *FlightService) GetFlight(ctx context.Context, flightID primitive.ObjectID) (*model.Flight, error) {
+	flight, err := s.FlightRepo.GetFlight(ctx, flightID)
+	if err != nil {
+		return nil, fmt.Errorf("getting flight: %w", err)
+	}
 
- return flight, nil
+	return flight, nil
 }
 
-func (s *FlightService) GetOffer(ctx context.Context, offerID primitive.ObjectID)(*model.FlightOffer, error){
+func (s *FlightService) GetOffer(ctx context.Context, offerID primitive.ObjectID) (*model.FlightOffer, error) {
 	offer, err := s.FlightRepo.GetOffer(ctx, offerID)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("getting offer: %w", err)
 	}
 
-	return offer, nil 
+	return offer, nil
 }
 
-func (s *FlightService) GetOffers(ctx context.Context)(*[]model.FlightOffer, error){
+func (s *FlightService) GetOffers(ctx context.Context) (*[]model.FlightOffer, error) {
 	offers, err := s.FlightRepo.GetOffers(ctx)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("getting offers: %w", err)
 	}
 
 	return &offers, nil
 }
-

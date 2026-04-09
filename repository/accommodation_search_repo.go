@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type AccommodationSearchRepo struct {
@@ -30,6 +31,7 @@ type AccommodationFilter struct {
 	SortBy       model.AccommodationSortOption
 	Page         int
 	PageSize     int
+	CandidateIDs  []primitive.ObjectID
 }
 
 func (r *AccommodationSearchRepo) SearchAccommodationAvailability(ctx context.Context, a *AccommodationFilter) ([]model.AccommodationSearchResult, error) {
@@ -37,7 +39,7 @@ func (r *AccommodationSearchRepo) SearchAccommodationAvailability(ctx context.Co
 	nights := int(a.CheckOutDate.Sub(a.CheckInDate).Hours() / 24)
 	totalGuests := a.Guests.Adults + a.Guests.Children + a.Guests.Infants
 	pipeline := mongo.Pipeline{
-		stageMatchAvailability(a.Rooms, a.CheckInDate, a.CheckOutDate),
+		stageMatchAvailability(a.Rooms, a.CheckInDate, a.CheckOutDate, a.CandidateIDs),
 		stageLookUpProperties(),
 		stageUnwindAccommodations(),
 		stageMatchesProperties(a.Location, a.PropertyType, totalGuests),
@@ -66,18 +68,25 @@ func (r *AccommodationSearchRepo) SearchAccommodationAvailability(ctx context.Co
 
 }
 
-func stageMatchAvailability(rooms int, checkIn, checkOut time.Time) bson.D {
+func stageMatchAvailability(rooms int, checkIn, checkOut time.Time, accommodationIDs []primitive.ObjectID) bson.D {
 	startOfDay := time.Date(checkIn.Year(), checkIn.Month(), checkIn.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := time.Date(checkOut.Year(), checkOut.Month(), checkOut.Day(), 0, 0, 0, 0, time.UTC)
 
-	return bson.D{{Key: "$match", Value: bson.M{
+	filter := bson.M{
 		"isActive": true,
+		"date":     bson.M{"$gte": startOfDay, "$lt": endOfDay},
 		"$expr": bson.M{"$gte": []interface{}{
 			bson.M{"$subtract": []interface{}{"$totalRooms", "$reservedRooms"}},
 			rooms,
 		}},
-		"date": bson.M{"$gte": startOfDay, "$lt": endOfDay},
-	}}}
+	}
+
+	if len(accommodationIDs) > 0 {
+		filter["accommodationID"] = bson.M{"$in": accommodationIDs}
+	}
+
+	return bson.D{{Key: "$match", Value: filter}}
+
 }
 
 func stageLookUpProperties() bson.D {
@@ -98,28 +107,13 @@ func stageMatchesProperties(location model.LocationSearch, property model.Proper
 		"accommodationDoc.isActive": true,
 	}
 
-	if location.Longitude != 0 || location.Latitude != 0 {
-		filter["accommodationDoc.location"] = bson.M{
-			"$nearSphere": bson.M{
-				"$geometry": bson.M{
-					"type":        "Point",
-					"coordinates": []float64{location.Longitude, location.Latitude},
-				},
-				"$maxDistance": location.RadiusKm * 1000,
-			},
-		}
-	} else if location.City != "" {
 
-		filter["accommodationDoc.address.city"] = bson.M{
-			"$regex": location.City, "$options": "i",
-		}
-		if location.Country != "" {
-			filter["accommodationDoc.address.country"] = bson.M{
-				"$regex": location.Country, "$options": "i",
-			}
-		}
-
-	}
+    if location.City != "" {
+        filter["accommodationDocs.address.city"] = bson.M{"$regex": location.City, "$options": "i"}
+        if location.Country != "" {
+            filter["accommodationDocs.address.country"] = bson.M{"$regex": location.Country, "$options": "i"}
+        }
+    }
 
 	if property != "" {
 		filter["accommodationDoc.type"] = property
@@ -141,7 +135,7 @@ func stageGroupByAccommodation(nights int) bson.D {
 		"_id":              "$accommodationID",
 		"availableNights":  bson.M{"$sum": 1},
 		"totalPrice":       bson.M{"$sum": "$pricePerNight"},
-		"accommodationDoc": bson.M{"$first": "$accommodationDoc"},
+		"accommodationDoc": bson.M{"$first": "$accommodationDocs"},
 		"minAvailableRooms": bson.M{
 			"$min": bson.M{
 				"$subtract": []interface{}{"$totalRooms", "$reservedRooms"},
@@ -222,4 +216,36 @@ func (r *AccommodationSearchRepo) GetTotalPrice(
 	}
 
 	return result.TotalPrice, nil
+}
+
+func (r *AccommodationSearchRepo) FindIDsNearLocation(ctx context.Context, lat, lng, radiusKm float64) ([]primitive.ObjectID, error) {
+	filter := bson.M{
+		"isActive": true,
+		"location": bson.M{
+			"$nearSphere": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": []float64{lng, lat},
+				},
+				"$maxDistance": radiusKm * 1000,
+			},
+		},
+	}
+	cursor, err := r.db.Collection("accommodations").Find(ctx, filter, options.Find().SetProjection(bson.M{"_id": 1}))
+	if err != nil {
+		return nil, fmt.Errorf("finding accommodations near location: %w", err)
+	}
+	defer cursor.Close(ctx)
+	var ids []primitive.ObjectID
+	for cursor.Next(ctx) {
+		var result struct {
+			ID primitive.ObjectID `bson:"_id"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("decoding accommodation ID: %w", err)
+		}
+		ids = append(ids, result.ID)
+	}
+	return ids, nil
+
 }

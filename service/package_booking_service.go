@@ -23,7 +23,7 @@ type PackageBookingService struct {
 	payment           payment.Provider
 }
 
-func NewPackageBookingRepo(flightRepo *repository.FlightBookingRepo,
+func NewPackageBookingService(flightRepo *repository.FlightBookingRepo,
 	accommodationRepo *repository.AccommodationBookingRepo,
 	accomRepo *repository.AccommodationSearchRepo,
 	activityRepo *repository.ActivityBookingRepo,

@@ -92,6 +92,11 @@ func (s *ActivityService) Create(ctx context.Context, req ActivityRequest) (*Act
 }
 
 func (s *ActivityService) Update(ctx context.Context, activityID primitive.ObjectID, req ActivityRequest) (*ActivityResult, error) {
+
+	_, err := s.activityRepo.GetActivity(ctx, activityID)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.activityRepo.Update(ctx, activityID, req.Title, req.DurationMinutes, req.Inclusions, req.Exclusions, &req.MeetingPoint); err != nil {
 		return nil, fmt.Errorf("updating activity: %w", err)
 	}
@@ -106,6 +111,11 @@ func (s *ActivityService) Update(ctx context.Context, activityID primitive.Objec
 }
 
 func (s *ActivityService) Delete(ctx context.Context, activityID primitive.ObjectID) error {
+	
+	_, err := s.activityRepo.GetActivity(ctx, activityID)
+	if err != nil {
+		return  err
+	}
 	if err := s.activityRepo.Delete(ctx, activityID); err != nil {
 		return fmt.Errorf("deleting activity: %w", err)
 	}
@@ -113,6 +123,11 @@ func (s *ActivityService) Delete(ctx context.Context, activityID primitive.Objec
 }
 
 func (s *ActivityService) SetActivityActive(ctx context.Context, activityID primitive.ObjectID, active bool) error {
+	
+	_, err := s.activityRepo.GetActivity(ctx, activityID)
+	if err != nil {
+		return  err
+	}
 	if err := s.activityRepo.SetActive(ctx, activityID, active); err != nil {
 		return fmt.Errorf("setting activity active state: %w", err)
 	}
@@ -152,6 +167,10 @@ func (s *ActivityService) CreateTimeSlot(ctx context.Context, activityID primiti
 }
 
 func (s *ActivityService) UpdateTimeSlot(ctx context.Context, timeSlotID primitive.ObjectID, req ActivityTimeslotRequest) error {
+	_, err := s.activityRepo.GetTmeslot(ctx, timeSlotID)
+	if err != nil{
+		return  err
+	}
 	if err := s.activityRepo.UpdateTimeslot(ctx, timeSlotID, req.StartTime, req.DurationMinutes, req.TotalSlots, req.GroupSizeMax, req.PricePerPerson); err != nil {
 		return fmt.Errorf("updating timeslot: %w", err)
 	}
@@ -159,6 +178,10 @@ func (s *ActivityService) UpdateTimeSlot(ctx context.Context, timeSlotID primiti
 }
 
 func (s *ActivityService) SetTimeSlotActive(ctx context.Context, timeSlotID primitive.ObjectID, active bool) error {
+		_, err := s.activityRepo.GetTmeslot(ctx, timeSlotID)
+	if err != nil{
+		return  err
+	}
 	if err := s.activityRepo.IsActive(ctx, timeSlotID, active); err != nil {
 		return fmt.Errorf("setting timeslot active state: %w", err)
 	}
