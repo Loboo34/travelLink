@@ -17,7 +17,7 @@ type FlightSearchRepo struct {
 	db *mongo.Database
 }
 
-func NewFligthRepo(db *mongo.Database) *FlightSearchRepo {
+func NewSearchFligthRepo(db *mongo.Database) *FlightSearchRepo {
 	return &FlightSearchRepo{db: db}
 }
 

@@ -1,4 +1,4 @@
-package handlers
+package handlers_user
 
 import (
 	"errors"

@@ -279,6 +279,44 @@ func (h *CancelActivityBooking) Cancel(w http.ResponseWriter, r *http.Request){
 
 	utils.RespondWithJson(w, http.StatusCreated,  result)
 }
+
+type CancelPackageBooking struct{
+	cancelService *service.PackageBookingService
+}
+
+func NewCancelPackageHandler(cancelService *service.PackageBookingService) *CancelPackageBooking{
+	return &CancelPackageBooking{cancelService: cancelService}
+}
+
+func (h *CancelPackageBooking) Cancel(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodPost{
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Post allowed")
+		return 
+	}
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil{
+		utils.RespondWithError(w, http.StatusUnauthorized, "missing user ID")
+		return 
+	}
+
+	var req model.Cancellation
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body")
+		return 
+	}
+
+	defer r.Body.Close()
+
+	result, err := h.cancelService.Cancel(r.Context(), userID, req)
+	if err != nil{
+	HandleServiceError(w, err, "package cancelation failed")
+		return 
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated,  result)
+}
+
 //get ooking history
 //createitinerary
 //get itinerary

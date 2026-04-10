@@ -13,6 +13,7 @@ import (
 	"github.com/Loboo34/travel/database"
 	"github.com/Loboo34/travel/handlers"
 	handlers_admin "github.com/Loboo34/travel/handlers/Admin"
+	handlers_user "github.com/Loboo34/travel/handlers/User"
 	"github.com/Loboo34/travel/middleware"
 	model "github.com/Loboo34/travel/models"
 	"github.com/Loboo34/travel/payment"
@@ -86,14 +87,32 @@ func main() {
 	flightService := service.NewFlightService(flightRepo)
 	flightHandler := handlers_admin.NewFlightHandler(flightService)
 
+	//indexing
 	if err := repository.CreateFlightIndexes(context.Background(), db); err != nil {
 		log.Fatal(err)
 	}
+	if err := repository.CreateAccommodationIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateActivityIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateBookingIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateUserIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateReviewIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
 
+	//accom
 	accommodatioRepo := repository.NewAccommodationRepo(db)
 	accommodationService := service.NewAccommodationService(accommodatioRepo)
 	accommodationHandler := handlers_admin.NewAccommodationHandler(accommodationService)
 
+	//activity
 	activityRepo := repository.NewActivityRepo(db)
 	activityService := service.NewActivityService(activityRepo)
 	activityHandler := handlers_admin.NewActivityHandler(activityService)
@@ -124,6 +143,31 @@ func main() {
 	cancelFlightHandler := handlers.NewCancelHandler(flightBookingService)
 	cancelAccommodationHandler := handlers.NewCancelAccommodationBookingHandler(accommodationBookingService)
 	cancelActivityHandler := handlers.NewCancelActivityBooking(activityBookingService)
+	cancelPackageHandler := handlers.NewCancelPackageHandler(packageBookingService)
+
+	//search
+	//repo
+	flightSearchRepo := repository.NewSearchFligthRepo(db)
+	accommodationSearchRepo := repository.NewAccommodationSearchRepo(db)
+	activiySearchRepo := repository.NewActivitySearchRepo(db)
+	airportRepo := repository.NewAirportRepo(db)
+	packageSearchRepo := repository.NewPackageSearchRepo(db)
+	//service
+	flightSearchService := service.NewFlightSearchService(flightSearchRepo, airportRepo)
+	accommmodationSearchService := service.NewAccommodationSearchService(accommodationSearchRepo)
+	activitySearchService := service.NewActivitySearchService(activiySearchRepo)
+	packageSearchService := service.NewPackageSearchService(packageSearchRepo, activityRepo, accommodationSearchRepo, flightSearchRepo)
+
+	//handlers
+	flightSearchHandler := handlers_user.NewSearchFlightHandler(flightSearchService)
+	accommodationSearchHandler := handlers_user.NewAccommodationHandler(accommmodationSearchService)
+	activitySeachHandler := handlers_user.NewSearchActivityHandler(activitySearchService)
+	packageSearchHandler := handlers_user.NewSearchPackageHandler(packageSearchService)
+
+	//review
+	reviewRepo := repository.NewReviewRepo(db)
+	reviewService := service.NewReviewService(reviewRepo)
+	reviewHandler := handlers.NewReviewHandler(reviewService)
 
 	//Routes
 
@@ -133,6 +177,7 @@ func main() {
 	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
 	r.Handle("/user/profile", user(http.HandlerFunc(userHandler.UpdateProfile)))
 	r.Handle("/user/password", user(http.HandlerFunc(userHandler.ChangePassword)))
+	r.Handle("/auth/profilepic", user(http.HandlerFunc(userHandler.ProfilePic)))
 
 	//admin
 	admin := auth.RequireAdmin(jwtManager)
@@ -188,7 +233,15 @@ func main() {
 
 	r.HandleFunc("/timeslots", activityHandler.GetTimeslots)
 	r.HandleFunc("/timeslot/{timeslotID}", activityHandler.GetTimeslot)
+
+	r.HandleFunc("/packages", packageHandler.GetPackages)
+	r.HandleFunc("/package/{packageID}", packageHandler.GetPackage)
+
 	//search
+	r.HandleFunc("/flight/search", flightSearchHandler.SearchFlight)
+	r.HandleFunc("/accommodation/search", accommodationSearchHandler.AccommodationSearch)
+	r.HandleFunc("/activity/search", activitySeachHandler.ActivitySearch)
+	r.HandleFunc("/package/search", packageSearchHandler.PackageSearch)
 
 	//booking
 	//flight
@@ -205,6 +258,12 @@ func main() {
 
 	//package
 	r.Handle("/package/book", user(http.HandlerFunc(packageBookingHandler.PackageBooking)))
+	r.Handle("/package/cancel", user(http.HandlerFunc(cancelPackageHandler.Cancel)))
+	//review
+	r.Handle("/review/create", user(http.HandlerFunc(reviewHandler.Create)))
+	r.Handle("/review/update", user(http.HandlerFunc(reviewHandler.Update)))
+	r.Handle("/review/delete/{reviewID}", user(http.HandlerFunc(reviewHandler.Delete)))
+	r.Handle("/review/get", user(http.HandlerFunc(reviewHandler.GetByTarget)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

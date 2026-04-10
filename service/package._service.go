@@ -131,3 +131,12 @@ func (s *PackageService) GetByID(ctx context.Context, packageID primitive.Object
 	}
 	return pkg, nil
 }
+
+func (s *PackageService) Packages(ctx context.Context) (*[]model.Package, error){
+	pkgs, err := s.packageRepo.Packages(ctx)
+	if err != nil{
+return nil, fmt.Errorf("fetching packages: %w", err)
+	}
+
+	return &pkgs, nil 
+}

@@ -1,4 +1,4 @@
-package handlers
+package handlers_user
 
 import (
 	"errors"
@@ -12,27 +12,24 @@ import (
 	"github.com/Loboo34/travel/utils"
 )
 
-// user
-// get all activities/activity
-
 // search activity
 type ActivitySearchHandler struct {
 	activityService *service.ActivitySearchService
 }
 
-func NewActivityHandler(activityService *service.ActivitySearchService) *ActivitySearchHandler {
+func NewSearchActivityHandler(activityService *service.ActivitySearchService) *ActivitySearchHandler {
 	return &ActivitySearchHandler{activityService: activityService}
 }
 
 func (h *ActivitySearchHandler) ActivitySearch(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "only GET allowed")
 		return
 	}
 
 	params, err := ParceAivityParams(r.URL.Query())
 	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Search param errors")
+		utils.RespondWithError(w, http.StatusBadRequest, "search param errors")
 		return
 	}
 
@@ -124,8 +121,3 @@ func ParceAivityParams(q url.Values) (model.ActivitySearch, error) {
 
 }
 
-//get activity time slots
-//check availability
-//get reviews
-//get by location
-//get by categories

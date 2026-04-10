@@ -52,7 +52,7 @@ func (r *FlightRequest) Validate() error {
 	}
 
 	if r.Currency == "" {
-		r.Currency = "USD" // sensible default
+		r.Currency = "USD" 
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func (r *AccommodationBookingRequest) Validate() error {
 	}
 
 	if r.Currency == "" {
-		r.Currency = "USD" // sensible default
+		r.Currency = "USD"
 	}
 
 	return nil
@@ -159,7 +159,7 @@ func (r *ActivityBookingRequest) Validate() error {
 	}
 
 	if r.Currency == "" {
-		r.Currency = "USD" // sensible default
+		r.Currency = "USD" 
 	}
 
 	return nil
@@ -208,7 +208,7 @@ func (r *PackageBookingRequest) Validate() error {
 	}
 
 	if r.Currency == "" {
-		r.Currency = "USD" // sensible default
+		r.Currency = "USD" 
 	}
 
 	return nil

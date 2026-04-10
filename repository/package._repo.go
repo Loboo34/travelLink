@@ -97,10 +97,25 @@ func (r *PackageRepo) GetByID(ctx context.Context, packageID primitive.ObjectID)
 	err := r.db.Collection("packages").FindOne(ctx, bson.M{"_id": packageID}).Decode(&pkg)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("package not found")
+			return nil, &model.NotFoundError{Resource: "package", ID: packageID.Hex()}
 		}
 		return nil, fmt.Errorf("fetching package: %w", err)
 	}
 
 	return &pkg, nil
+}
+
+func (r *PackageRepo) Packages(ctx context.Context) ([]model.Package, error){
+	cursor, err := r.db.Collection("packages").Find(ctx, bson.M{})
+	if err != nil{
+return nil, fmt.Errorf("finding packages")
+	}
+	defer cursor.Close(ctx)
+
+	var pkgs []model.Package
+if err := cursor.All(ctx, &pkgs); err != nil{
+	return nil, fmt.Errorf("decoding packages")
+}
+
+return  pkgs, nil
 }

@@ -1,4 +1,4 @@
-package handlers
+package handlers_user
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ type FLightSearchHandler struct {
 	flightService *service.FlightSearchService
 }
 
-func NewFlightHandler(flightService *service.FlightSearchService) *FLightSearchHandler {
+func NewSearchFlightHandler(flightService *service.FlightSearchService) *FLightSearchHandler {
 	return &FLightSearchHandler{flightService: flightService}
 }
 
@@ -50,7 +50,7 @@ func parseSearchParams(q url.Values) (model.FlightSearch, error) {
 	params.OriginCode = q.Get("originCode")
 	params.DestinationCode = q.Get("destinationCode")
 
-	depTime, err := time.Parse("2006-01-02", q.Get("depatureTime"))
+	depTime, err := time.Parse("2006-01-02", q.Get("departureTime"))
 	if err != nil {
 		return params, errors.New("")
 	}

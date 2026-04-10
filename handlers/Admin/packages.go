@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Loboo34/travel/handlers"
 	"github.com/Loboo34/travel/service"
 	"github.com/Loboo34/travel/utils"
 	"github.com/gorilla/mux"
@@ -166,4 +167,45 @@ func (h *PackageHandler) DeletePackage(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
-// package stats
+func (h *PackageHandler) GetPackage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	vars := mux.Vars(r)
+	pkgIDStr := vars["packageID"]
+	if pkgIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "missing package ID")
+		return
+	}
+
+	pkgID, err := primitive.ObjectIDFromHex(pkgIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid package ID")
+		return
+	}
+
+	result, err := h.packageService.GetByID(r.Context(), pkgID)
+	if err != nil {
+		handlers.HandleServiceError(w, err, "failed fetching package")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, result)
+}
+
+func (h *PackageHandler) GetPackages(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	results, err := h.packageService.Packages(r.Context())
+	if err != nil {
+		handlers.HandleServiceError(w, err, "failed fetching packages")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, results)
+}
