@@ -31,16 +31,16 @@ type RegisterRequest struct {
 
 func (r *RegisterRequest) Validate() error {
 	if r.FirstName == "" {
-		return errors.New("first name required")
+		return errors.New("first name is required")
 	}
 	if r.LastName == "" {
-		return errors.New("first name required")
+		return errors.New("last name is required")
 	}
 	if len(r.Password) < 8 {
-		return errors.New("first name required")
+		return errors.New("password must be at least 8 characters")
 	}
 	if r.Email == "" {
-		return errors.New("first name required")
+		return errors.New("email is required")
 	}
 	return nil
 }
@@ -52,10 +52,10 @@ type LoginRequest struct {
 
 func (r *LoginRequest) Validate() error {
 	if r.Password == "" {
-		return errors.New("first name required")
+		return errors.New("password is required")
 	}
 	if r.Email == "" {
-		return errors.New("first name required")
+		return errors.New("email is required")
 	}
 	return nil
 }
@@ -141,7 +141,7 @@ func (s *UserService) Login(ctx context.Context, req LoginRequest) (*AuthResult,
 
 	token, err := s.jwt.Generate(user.ID, user.Role, user.Email)
 	if err != nil {
-		return nil, fmt.Errorf("generating tiken: %w", err)
+		return nil, fmt.Errorf("generating token: %w", err)
 	}
 
 	return &AuthResult{

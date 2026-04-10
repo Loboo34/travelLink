@@ -116,7 +116,7 @@ func (r *UserRepo) UpdatePassword(ctx context.Context, userID primitive.ObjectID
 func (r *UserRepo) ProfilePic(ctx context.Context, userID primitive.ObjectID, image string) error {
 	update := bson.M{
 		"$set": bson.M{
-			"profilePic": image,
+			"profilepic": image,
 		},
 	}
 
