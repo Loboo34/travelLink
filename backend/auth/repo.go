@@ -131,3 +131,58 @@ func (r *UserRepo) ProfilePic(ctx context.Context, userID primitive.ObjectID, im
 
 	return nil
 }
+
+func (r *UserRepo) GetAllUsers(ctx context.Context) ([]model.User, error) {
+	cursor, err := r.db.Collection("users").Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching users: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var users []model.User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, fmt.Errorf("error decoding users: %w", err)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepo) UpdateUserRole(ctx context.Context, userID primitive.ObjectID, role model.UserRole) error {
+	update := bson.M{
+		"$set": bson.M{
+			"role":      role,
+			"updatedAt": time.Now(),
+		},
+	}
+
+	res, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	if err != nil {
+		return fmt.Errorf("updating user role: %w", err)
+	}
+
+	if res.MatchedCount == 0 {
+		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
+	}
+
+	return nil
+}
+
+func (r *UserRepo) UpdateUserStatus(ctx context.Context, userID primitive.ObjectID, isActive bool) error {
+	update := bson.M{
+		"$set": bson.M{
+			"isActive":  isActive,
+			"updatedAt": time.Now(),
+		},
+	}
+
+	res, err := r.db.Collection("users").UpdateOne(ctx, bson.M{"_id": userID}, update)
+	if err != nil {
+		return fmt.Errorf("updating user status: %w", err)
+	}
+
+	if res.MatchedCount == 0 {
+		return &model.NotFoundError{Resource: "user", ID: userID.Hex()}
+	}
+
+	return nil
+}

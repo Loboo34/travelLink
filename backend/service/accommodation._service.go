@@ -54,7 +54,7 @@ type AvailabilityRequest struct {
 
 type AvailabilityResult struct {
 	AccommodationID primitive.ObjectID `json:"accommodationID"`
-	RoomTypeID      primitive.ObjectID     `json:"roomTypeID"`
+	RoomTypeID      primitive.ObjectID `json:"roomTypeID"`
 	TotalRooms      int                `json:"totalRooms"`
 }
 
@@ -75,6 +75,7 @@ func (s *AccommodationService) Add(ctx context.Context, req AccommodationRequest
 		RoomType:     req.RoomType,
 		Rating:       0,
 		ReviewCount:  0,
+		IsActive:     true,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -111,9 +112,9 @@ func (s *AccommodationService) Update(ctx context.Context, accommodationId primi
 
 func (s *AccommodationService) Delete(ctx context.Context, accommodationID primitive.ObjectID) error {
 
-		_, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID); 
-		if err != nil{
-		return  err
+	_, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID)
+	if err != nil {
+		return err
 	}
 	if err := s.accommodationRepo.Delete(ctx, accommodationID); err != nil {
 		return fmt.Errorf("deleting accommodation: %w", err)
@@ -175,7 +176,6 @@ func (s *AccommodationService) Remove(ctx context.Context, availabilityID primit
 	return nil
 }
 
-
 func (s *AccommodationService) GetAccomodations(ctx context.Context) (*[]model.Accommodation, error) {
 	accommodations, err := s.accommodationRepo.GetAccomodations(ctx)
 	if err != nil {
@@ -185,28 +185,27 @@ func (s *AccommodationService) GetAccomodations(ctx context.Context) (*[]model.A
 	return &accommodations, nil
 }
 
-func (s *AccommodationService) GetAccommodation(ctx context.Context, accommodationID primitive.ObjectID) (*model.Accommodation, error){
- accommodation, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID)
- if err != nil{
-	return nil, fmt.Errorf("getting accommodation: %w", err)
- }
+func (s *AccommodationService) GetAccommodation(ctx context.Context, accommodationID primitive.ObjectID) (*model.Accommodation, error) {
+	accommodation, err := s.accommodationRepo.GetAccomodation(ctx, accommodationID)
+	if err != nil {
+		return nil, fmt.Errorf("getting accommodation: %w", err)
+	}
 
- return accommodation, nil
+	return accommodation, nil
 }
 
-
-func (s *AccommodationService) GetAvailabilities(ctx context.Context) (*[]model.AccommodationAvailability, error){
+func (s *AccommodationService) GetAvailabilities(ctx context.Context) (*[]model.AccommodationAvailability, error) {
 	availability, err := s.accommodationRepo.GetAvailabilities(ctx)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("getting available accommodations: %w", err)
 	}
 
 	return &availability, nil
 }
 
-func (s *AccommodationService) GetAvailability(ctx context.Context, availabilityID primitive.ObjectID) (*model.AccommodationAvailability, error){
+func (s *AccommodationService) GetAvailability(ctx context.Context, availabilityID primitive.ObjectID) (*model.AccommodationAvailability, error) {
 	accom, err := s.accommodationRepo.GetAvailability(ctx, availabilityID)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("getting available accommodation: %w", err)
 	}
 

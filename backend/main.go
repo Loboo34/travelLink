@@ -36,7 +36,8 @@ func init() {
 func main() {
 
 	r := mux.NewRouter()
-	r.Use()
+	r.Use(middleware.Cors())
+	//r.Use()
 
 	//db
 	db := database.ConnectDB()
@@ -264,6 +265,21 @@ func main() {
 	r.Handle("/review/update", user(http.HandlerFunc(reviewHandler.Update)))
 	r.Handle("/review/delete/{reviewID}", user(http.HandlerFunc(reviewHandler.Delete)))
 	r.Handle("/review/get", user(http.HandlerFunc(reviewHandler.GetByTarget)))
+
+	// Admin dashboard endpoints
+	adminHandler := handlers.NewAdminHandler(userRepo, flightBookingRepo, accommodationBookingRepo, activityBookingRepo, packageBookingRepo)
+	r.Handle("/admin/stats", admin(http.HandlerFunc(adminHandler.GetStats)))
+	r.Handle("/admin/users", admin(http.HandlerFunc(adminHandler.GetUsers)))
+	r.Handle("/admin/user/{userId}/role", admin(http.HandlerFunc(adminHandler.UpdateUserRole)))
+	r.Handle("/admin/user/{userId}/toggle-status", admin(http.HandlerFunc(adminHandler.ToggleUserStatus)))
+	r.Handle("/admin/bookings", admin(http.HandlerFunc(adminHandler.GetBookings)))
+	r.Handle("/admin/booking/{bookingId}/status", admin(http.HandlerFunc(adminHandler.UpdateBookingStatus)))
+	r.Handle("/admin/airlines", admin(http.HandlerFunc(handlers_admin.GetAirlines)))
+	r.Handle("/admin/airline/{airlineID}", admin(http.HandlerFunc(handlers_admin.GetAirline)))
+	r.Handle("/admin/airports", admin(http.HandlerFunc(handlers_admin.GetAirports)))
+	r.Handle("/admin/airport/{airportID}", admin(http.HandlerFunc(handlers_admin.GetAirport)))
+	r.Handle("/admin/planes", admin(http.HandlerFunc(handlers_admin.GetPlanes)))
+	r.Handle("/admin/plane/{planeID}", admin(http.HandlerFunc(handlers_admin.GetPlane)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

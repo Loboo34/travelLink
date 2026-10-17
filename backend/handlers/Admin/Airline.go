@@ -125,7 +125,7 @@ func UpdateAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -177,7 +177,7 @@ func DeleteAirline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -208,7 +208,7 @@ func GetAirlines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  airlines)
+	utils.RespondWithJson(w, http.StatusOK, airlines)
 }
 
 func GetAirline(w http.ResponseWriter, r *http.Request) {
@@ -247,7 +247,7 @@ func GetAirline(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
 // airport
@@ -422,7 +422,7 @@ func DeleteAirport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -492,7 +492,7 @@ func GetAirport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 }
 
 // routes
@@ -538,7 +538,7 @@ func CreateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusCreated,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusCreated, map[string]interface{}{})
 	utils.Logger.Info("Route created")
 }
 
@@ -607,7 +607,7 @@ func UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -659,7 +659,7 @@ func DeleteRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
 
 }
 
@@ -690,7 +690,7 @@ func GetRoutes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  routes)
+	utils.RespondWithJson(w, http.StatusOK, routes)
 }
 
 func GetRoute(w http.ResponseWriter, r *http.Request) {
@@ -729,5 +729,121 @@ func GetRoute(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  map[string]interface{}{})
+	utils.RespondWithJson(w, http.StatusOK, map[string]interface{}{})
+}
+
+func AddPlane(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only post allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Only admin")
+		return
+	}
+
+	var req struct {
+		Name         string             `bson:"name" json:"name"`
+		Model        string             `bson:"model" json:"model"`
+		CabinClasses []model.CabinClass `bson:"cabinClasses" json:"cabinClasses"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid json")
+		return
+	}
+
+	planeCollection := database.DB.Collection("planes")
+
+	create := model.PlaneModel{
+		ID:           primitive.NewObjectID(),
+		Name:         req.Name,
+		Model:        req.Model,
+		CabinClasses: req.CabinClasses,
+	}
+
+	result, err := planeCollection.InsertOne(r.Context(), create)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating flight")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusCreated, result)
+}
+
+func GetPlanes(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only Get Allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Not admin")
+		return
+	}
+
+	planeCollection := database.DB.Collection("planes")
+
+	cursor, err := planeCollection.Find(r.Context(), bson.M{})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch planes")
+		return
+	}
+
+	defer cursor.Close(r.Context())
+
+	var planes []model.PlaneModel
+	if err := cursor.All(r.Context(), &planes); err != nil {
+		utils.Logger.Warn("Failed to decode planes")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error decodeing planes")
+		return
+	}
+
+
+	utils.RespondWithJson(w, http.StatusOK, planes)
+}
+
+func GetPlane(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
+		return
+	}
+
+	_, err := utils.GetAdminID(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Not admin")
+		return
+	}
+
+	vars := mux.Vars(r)
+	planeIDStr := vars["planeID"]
+	if planeIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing plane ID")
+		return
+	}
+
+	planeID, err := primitive.ObjectIDFromHex(planeIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid airport ID")
+		return
+	}
+
+	planeCollection := database.DB.Collection("planes")
+	var plane model.PlaneModel
+
+	err = planeCollection.FindOne(r.Context(), bson.M{"_id": planeID}).Decode(&plane)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			utils.RespondWithError(w, http.StatusNotFound, "plane not found")
+			return
+		}
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error finding plane")
+		utils.Logger.Warn("Failed to find plane")
+		return
+	}
+
+	utils.RespondWithJson(w, http.StatusOK, plane)
 }

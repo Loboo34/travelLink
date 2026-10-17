@@ -46,11 +46,17 @@ func (h *FlightHandler) AddFlight(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.flightService.AddFlight(r.Context(), req)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error creating flight")
+		// Return 400 for validation errors, 500 for other errors
+		if _, ok := err.(*model.ValidationError); ok {
+			utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		} else {
+			utils.Logger.Error("Error creating flight", zap.Error(err))
+			utils.RespondWithError(w, http.StatusInternalServerError, "error creating flight")
+		}
 		return
 	}
 
-	utils.Logger.Info("Created Fligh successfully")
+	utils.Logger.Info("Created flight successfully")
 	utils.RespondWithJson(w, http.StatusCreated, result)
 
 }
@@ -349,16 +355,15 @@ func (h *FlightHandler) GetFlights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flights, err := h.flightService.GetFlights(r.Context())
-	if err != nil{
+	if err != nil {
 		handlers.HandleServiceError(w, err, "fetching flights")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  flights)
+	utils.RespondWithJson(w, http.StatusOK, flights)
 }
 
-
-func (h *FlightHandler)  GetFlight(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) GetFlight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return
@@ -395,15 +400,15 @@ func (h *FlightHandler) GetOffers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	offers, err := h.flightService.GetOffers(r.Context())
-	if err != nil{
+	if err != nil {
 		handlers.HandleServiceError(w, err, "fetching offers")
 		return
 	}
 
-	utils.RespondWithJson(w, http.StatusOK,  offers)
+	utils.RespondWithJson(w, http.StatusOK, offers)
 }
 
-func (h *FlightHandler)  GetOffer(w http.ResponseWriter, r *http.Request) {
+func (h *FlightHandler) GetOffer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.RespondWithError(w, http.StatusMethodNotAllowed, "Only GET allowed")
 		return
