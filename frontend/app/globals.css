@@ -1,0 +1,198 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* TravelLink Brand Colors - Light Mode */
+  /* Warm Sand #F9F7F4 for background */
+  --background: #F9F7F4;
+  /* Slate #1E293B for body text */
+  --foreground: #1E293B;
+  /* Surface White #FFFFFF for cards */
+  --card: #FFFFFF;
+  --card-foreground: #1E293B;
+  --popover: #FFFFFF;
+  --popover-foreground: #1E293B;
+  /* Tropical Teal #14B8A6 as primary */
+  --primary: #14B8A6;
+  --primary-foreground: #FFFFFF;
+  /* Navy for secondary elements */
+  --secondary: #E8EDF5;
+  --secondary-foreground: #0F172A;
+  --muted: #E8EDF5;
+  --muted-foreground: #4A5F8A;
+  /* Amber Gold #E8A838 for accents */
+  --accent: #E8A838;
+  --accent-foreground: #412402;
+  /* Red for destructive */
+  --destructive: #E24B4A;
+  --destructive-foreground: #FFFFFF;
+  --border: #C2CEDE;
+  --input: #C2CEDE;
+  --ring: #14B8A6;
+  /* Chart colors using brand palette */
+  --chart-1: #14B8A6;
+  --chart-2: #E8A838;
+  --chart-3: #0F172A;
+  --chart-4: #378ADD;
+  --chart-5: #639922;
+  --radius: 0.625rem;
+  /* Sidebar uses Deep Ocean #0F172A */
+  --sidebar: #0F172A;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #14B8A6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #243459;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #243459;
+  --sidebar-ring: #14B8A6;
+}
+
+.dark {
+  /* TravelLink Brand Colors - Dark Mode */
+  /* Deep Ocean #0F172A for background */
+  --background: #0F172A;
+  --foreground: #F9F7F4;
+  /* Navy 600 #162240 for cards */
+  --card: #162240;
+  --card-foreground: #F9F7F4;
+  --popover: #162240;
+  --popover-foreground: #F9F7F4;
+  /* Tropical Teal stays primary */
+  --primary: #14B8A6;
+  --primary-foreground: #0F172A;
+  --secondary: #243459;
+  --secondary-foreground: #F9F7F4;
+  --muted: #243459;
+  --muted-foreground: #8898B8;
+  /* Amber Gold for accents */
+  --accent: #E8A838;
+  --accent-foreground: #0F172A;
+  /* Red for destructive */
+  --destructive: #E24B4A;
+  --destructive-foreground: #FFFFFF;
+  --border: #243459;
+  --input: #243459;
+  --ring: #14B8A6;
+  /* Chart colors - brighter for dark mode */
+  --chart-1: #14B8A6;
+  --chart-2: #FAC775;
+  --chart-3: #85B7EB;
+  --chart-4: #97C459;
+  --chart-5: #F09595;
+  /* Sidebar in dark mode */
+  --sidebar: #060C18;
+  --sidebar-foreground: #F9F7F4;
+  --sidebar-primary: #14B8A6;
+  --sidebar-primary-foreground: #0F172A;
+  --sidebar-accent: #162240;
+  --sidebar-accent-foreground: #F9F7F4;
+  --sidebar-border: #162240;
+  --sidebar-ring: #14B8A6;
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  
+  /* TravelLink Brand Color Scales */
+  /* Teal Scale */
+  --color-teal-50: #E1F5EE;
+  --color-teal-100: #9FE1CB;
+  --color-teal-200: #5DCAA5;
+  --color-teal-400: #1D9E75;
+  --color-teal-500: #14B8A6;
+  --color-teal-600: #0F6E56;
+  --color-teal-800: #085041;
+  --color-teal-900: #04342C;
+  
+  /* Amber Scale */
+  --color-amber-50: #FFF8E8;
+  --color-amber-100: #FAC775;
+  --color-amber-200: #EF9F27;
+  --color-amber-400: #E8A838;
+  --color-amber-600: #854F0B;
+  --color-amber-800: #633806;
+  --color-amber-900: #412402;
+  
+  /* Navy Scale */
+  --color-navy-50: #E8EDF5;
+  --color-navy-100: #C2CEDE;
+  --color-navy-200: #8898B8;
+  --color-navy-400: #4A5F8A;
+  --color-navy-500: #243459;
+  --color-navy-600: #162240;
+  --color-navy-800: #0F172A;
+  --color-navy-900: #060C18;
+  
+  /* Semantic Colors */
+  --color-danger-50: #FCEBEB;
+  --color-danger-200: #F09595;
+  --color-danger-400: #E24B4A;
+  --color-danger-800: #791F1F;
+  
+  --color-info-50: #E6F1FB;
+  --color-info-200: #85B7EB;
+  --color-info-400: #378ADD;
+  --color-info-800: #0C447C;
+  
+  --color-success-50: #EAF3DE;
+  --color-success-200: #97C459;
+  --color-success-400: #639922;
+  --color-success-800: #27500A;
+  
+  /* Brand Aliases */
+  --color-deep-ocean: #0F172A;
+  --color-tropical-teal: #14B8A6;
+  --color-amber-gold: #E8A838;
+  --color-warm-sand: #F9F7F4;
+  --color-surface-white: #FFFFFF;
+  --color-slate: #1E293B;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
