@@ -1,0 +1,251 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/Loboo34/travel/auth"
+	"github.com/Loboo34/travel/handlers"
+	handlers_admin "github.com/Loboo34/travel/handlers/Admin"
+	handlers_user "github.com/Loboo34/travel/handlers/User"
+	"github.com/Loboo34/travel/middleware"
+	model "github.com/Loboo34/travel/models"
+	"github.com/Loboo34/travel/payment"
+	"github.com/Loboo34/travel/repository"
+	"github.com/Loboo34/travel/service"
+	"github.com/Loboo34/travel/utils"
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+func useRoutes(r *mux.Router, db *mongo.Database) {
+
+	jwtManager := auth.NewJWTManager(
+		os.Getenv("JWT_SECRET"),
+		720*time.Hour, // 30 days
+	)
+
+	user := auth.Authenticate(jwtManager)
+
+	r.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Auth setup
+	userRepo := auth.NewUserRepo(db)
+	userService := auth.NewUserService(userRepo, jwtManager)
+	userHandler := handlers.NewUserHandler(userService)
+
+	// Create admin
+	adminService := middleware.NewAdminHandler(userRepo)
+	if err := adminService.Create(context.Background()); err != nil {
+		var conflictErr *model.ConflictError
+		if errors.As(err, &conflictErr) {
+			utils.Logger.Info("admin user already exists, skipping initialization")
+		} else {
+			log.Fatalf("failed to create admin user on startup: %v", err)
+		}
+	}
+
+	//flight
+	flightRepo := repository.NewFlightRepo(db)
+	flightService := service.NewFlightService(flightRepo)
+	flightHandler := handlers_admin.NewFlightHandler(flightService)
+
+	//indexing
+	if err := repository.CreateFlightIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateAccommodationIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateActivityIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateBookingIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateUserIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+	if err := repository.CreateReviewIndexes(context.Background(), db); err != nil {
+		log.Fatal(err)
+	}
+
+	//accom
+	accommodatioRepo := repository.NewAccommodationRepo(db)
+	accommodationService := service.NewAccommodationService(accommodatioRepo)
+	accommodationHandler := handlers_admin.NewAccommodationHandler(accommodationService)
+
+	//activity
+	activityRepo := repository.NewActivityRepo(db)
+	activityService := service.NewActivityService(activityRepo)
+	activityHandler := handlers_admin.NewActivityHandler(activityService)
+
+	packageRepo := repository.NewPackageRepo(db)
+	packageService := service.NewPackageService(packageRepo)
+	packageHandler := handlers_admin.NewPackageHandler(packageService)
+
+	//booking repos
+	flightBookingRepo := repository.NewFlightBookingRepo(db)
+	accommodationBookingRepo := repository.NewAccommodationBookingRepo(db)
+	activityBookingRepo := repository.NewActivityBookingRepo(db)
+	packageBookingRepo := repository.NewPackageBookingRepo(db)
+
+	//booking services
+	flightBookingService := service.NewFlightBookingService(flightRepo, flightBookingRepo, payment.NewStripeProvider())
+	accommodationBookingService := service.NewAccommodationBookingService(repository.NewAccommodationSearchRepo(db), accommodationBookingRepo, payment.NewStripeProvider())
+	activityBookingService := service.NewActivityBookingService(activityRepo, activityBookingRepo, payment.NewStripeProvider())
+	packageBookingService := service.NewPackageBookingService(flightBookingRepo, accommodationBookingRepo, repository.NewAccommodationSearchRepo(db), activityBookingRepo, packageBookingRepo, payment.NewStripeProvider())
+
+	//booking handlers
+	flightBookingHandler := handlers.NewFlightBookingHandler(flightBookingService)
+	accommodationBookingHandler := handlers.NewAccommodationBookingHandler(accommodationBookingService)
+	activityBookingHandler := handlers.NewActivityBookingHandler(activityBookingService)
+	packageBookingHandler := handlers.NewPackageHandler(packageBookingService)
+
+	//cancel handlers
+	cancelFlightHandler := handlers.NewCancelHandler(flightBookingService)
+	cancelAccommodationHandler := handlers.NewCancelAccommodationBookingHandler(accommodationBookingService)
+	cancelActivityHandler := handlers.NewCancelActivityBooking(activityBookingService)
+	cancelPackageHandler := handlers.NewCancelPackageHandler(packageBookingService)
+
+	//search
+	//repo
+	flightSearchRepo := repository.NewSearchFligthRepo(db)
+	accommodationSearchRepo := repository.NewAccommodationSearchRepo(db)
+	activiySearchRepo := repository.NewActivitySearchRepo(db)
+	airportRepo := repository.NewAirportRepo(db)
+	packageSearchRepo := repository.NewPackageSearchRepo(db)
+	//service
+	flightSearchService := service.NewFlightSearchService(flightSearchRepo, airportRepo)
+	accommmodationSearchService := service.NewAccommodationSearchService(accommodationSearchRepo)
+	activitySearchService := service.NewActivitySearchService(activiySearchRepo)
+	packageSearchService := service.NewPackageSearchService(packageSearchRepo, activityRepo, accommodationSearchRepo, flightSearchRepo)
+
+	//handlers
+	flightSearchHandler := handlers_user.NewSearchFlightHandler(flightSearchService)
+	accommodationSearchHandler := handlers_user.NewAccommodationHandler(accommmodationSearchService)
+	activitySeachHandler := handlers_user.NewSearchActivityHandler(activitySearchService)
+	packageSearchHandler := handlers_user.NewSearchPackageHandler(packageSearchService)
+
+	//review
+	reviewRepo := repository.NewReviewRepo(db)
+	reviewService := service.NewReviewService(reviewRepo)
+	reviewHandler := handlers.NewReviewHandler(reviewService)
+
+	//Routes
+
+	//auth
+	r.HandleFunc("/auth/register", userHandler.Register)
+	r.HandleFunc("/auth/login", userHandler.Login)
+	r.Handle("/auth/profile", user(http.HandlerFunc(userHandler.GetProfile)))
+	r.Handle("/user/profile", user(http.HandlerFunc(userHandler.UpdateProfile)))
+	r.Handle("/user/password", user(http.HandlerFunc(userHandler.ChangePassword)))
+	r.Handle("/auth/profilepic", user(http.HandlerFunc(userHandler.ProfilePic)))
+
+	//admin
+	admin := auth.RequireAdmin(jwtManager)
+
+	//flights
+	r.Handle("/flight/add", admin(http.HandlerFunc(flightHandler.AddFlight)))
+	r.Handle("/flight/update/{flightID}", admin(http.HandlerFunc(flightHandler.UpdateFight)))
+	r.Handle("/flight/status/{flightID}", admin(http.HandlerFunc(flightHandler.UpdateFlightStatus)))
+	r.Handle("/flight/delete/{flightID}", admin(http.HandlerFunc(flightHandler.DeleteFlight)))
+
+	//offers
+	r.Handle("/offer/create", admin(http.HandlerFunc(flightHandler.FlightOffer)))
+	r.Handle("/offer/update/{offerID}", admin(http.HandlerFunc(flightHandler.UpdateOffer)))
+	r.Handle("/offer/isactive/{offerID}", admin(http.HandlerFunc(flightHandler.IsActive)))
+	r.Handle("/offer/delete/{offerID}", admin(http.HandlerFunc(flightHandler.DeleteOffer)))
+
+	//accommodation
+	r.Handle("/accommodation/add", admin(http.HandlerFunc(accommodationHandler.AddAccommodation)))
+	r.Handle("/accommodation/update/{accommodationID}", admin(http.HandlerFunc(accommodationHandler.Update)))
+	r.Handle("/accommodation/delete/{accommodationID}", admin(http.HandlerFunc(accommodationHandler.DeleteAccommodation)))
+	r.Handle("/availability/add", admin(http.HandlerFunc(accommodationHandler.Availability)))
+	r.Handle("/availability/status/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.IsActive)))
+	r.Handle("/availability/remove/{availabilityID}", admin(http.HandlerFunc(accommodationHandler.RemoveAvailability)))
+
+	//activities
+	r.Handle("/activity/add", admin(http.HandlerFunc(activityHandler.CreateActivity)))
+	r.Handle("/activity/update/{activityID}", admin(http.HandlerFunc(activityHandler.UpdateActivity)))
+	r.Handle("/activity/delete/{activityID}", admin(http.HandlerFunc(activityHandler.DeleteActivity)))
+	r.Handle("/activity/{activityID}/timeslot", admin(http.HandlerFunc(activityHandler.CreateTimeSlot)))
+
+	//packages
+	r.Handle("/package/add", admin(http.HandlerFunc(packageHandler.CreatePackage)))
+	r.Handle("/package/update/{packageID}", admin(http.HandlerFunc(packageHandler.UpdatePackage)))
+	r.Handle("/package/status/{packageID}", admin(http.HandlerFunc(packageHandler.SetActivePackage)))
+	r.Handle("/package/delete/{packageID}", admin(http.HandlerFunc(packageHandler.DeletePackage)))
+
+	//user
+	//fetch
+	r.HandleFunc("/flights", flightHandler.GetFlights)
+	r.HandleFunc("/flight/{flightID}", flightHandler.GetFlight)
+
+	r.HandleFunc("/offers", flightHandler.GetOffers)
+	r.HandleFunc("/offer/{offerID}", flightHandler.GetOffer)
+
+	r.HandleFunc("/accommodations", accommodationHandler.GetAcommodations)
+	r.HandleFunc("/accommodation/{accommodationID}", accommodationHandler.GetAccommodation)
+
+	r.HandleFunc("/available", accommodationHandler.GetAvailabilities)
+	r.HandleFunc("/available/{availilableID}", accommodationHandler.GetAvailability)
+
+	r.HandleFunc("/activitties", activityHandler.GetActivities)
+	r.HandleFunc("/activity/{activityID}", activityHandler.GetActivity)
+
+	r.HandleFunc("/timeslots", activityHandler.GetTimeslots)
+	r.HandleFunc("/timeslot/{timeslotID}", activityHandler.GetTimeslot)
+
+	r.HandleFunc("/packages", packageHandler.GetPackages)
+	r.HandleFunc("/package/{packageID}", packageHandler.GetPackage)
+
+	//search
+	r.HandleFunc("/flight/search", flightSearchHandler.SearchFlight)
+	r.HandleFunc("/accommodation/search", accommodationSearchHandler.AccommodationSearch)
+	r.HandleFunc("/activity/search", activitySeachHandler.ActivitySearch)
+	r.HandleFunc("/package/search", packageSearchHandler.PackageSearch)
+
+	//booking
+	//flight
+	r.Handle("/flight/book", user(http.HandlerFunc(flightBookingHandler.FLightBooking)))
+	r.Handle("/flight/cancel", user(http.HandlerFunc(cancelFlightHandler.Cancel)))
+
+	//accommodation
+	r.Handle("/accommodation/book", user(http.HandlerFunc(accommodationBookingHandler.AccommodationBooking)))
+	r.Handle("/accommodation/cancel", user(http.HandlerFunc(cancelAccommodationHandler.Cancel)))
+
+	//activity
+	r.Handle("/activity/book", user(http.HandlerFunc(activityBookingHandler.ActivityBooking)))
+	r.Handle("/activity/cancel", user(http.HandlerFunc(cancelActivityHandler.Cancel)))
+
+	//package
+	r.Handle("/package/book", user(http.HandlerFunc(packageBookingHandler.PackageBooking)))
+	r.Handle("/package/cancel", user(http.HandlerFunc(cancelPackageHandler.Cancel)))
+	//review
+	r.Handle("/review/create", user(http.HandlerFunc(reviewHandler.Create)))
+	r.Handle("/review/update", user(http.HandlerFunc(reviewHandler.Update)))
+	r.Handle("/review/delete/{reviewID}", user(http.HandlerFunc(reviewHandler.Delete)))
+	r.Handle("/review/get", user(http.HandlerFunc(reviewHandler.GetByTarget)))
+
+	// Admin dashboard endpoints
+	adminHandler := handlers.NewAdminHandler(userRepo, flightBookingRepo, accommodationBookingRepo, activityBookingRepo, packageBookingRepo)
+	r.Handle("/admin/stats", admin(http.HandlerFunc(adminHandler.GetStats)))
+	r.Handle("/admin/users", admin(http.HandlerFunc(adminHandler.GetUsers)))
+	r.Handle("/admin/user/{userId}/role", admin(http.HandlerFunc(adminHandler.UpdateUserRole)))
+	r.Handle("/admin/user/{userId}/toggle-status", admin(http.HandlerFunc(adminHandler.ToggleUserStatus)))
+	r.Handle("/admin/bookings", admin(http.HandlerFunc(adminHandler.GetBookings)))
+	r.Handle("/admin/booking/{bookingId}/status", admin(http.HandlerFunc(adminHandler.UpdateBookingStatus)))
+	r.Handle("/admin/airlines", admin(http.HandlerFunc(handlers_admin.GetAirlines)))
+	r.Handle("/admin/airline/{airlineID}", admin(http.HandlerFunc(handlers_admin.GetAirline)))
+	r.Handle("/admin/airports", admin(http.HandlerFunc(handlers_admin.GetAirports)))
+	r.Handle("/admin/airport/{airportID}", admin(http.HandlerFunc(handlers_admin.GetAirport)))
+	r.Handle("/admin/planes", admin(http.HandlerFunc(handlers_admin.GetPlanes)))
+	r.Handle("/admin/plane/{planeID}", admin(http.HandlerFunc(handlers_admin.GetPlane)))
+}
